@@ -1278,7 +1278,7 @@ dependencies = [
 
 [[package]]
 name = "mate"
-version = "0.0.0-pre.fc91cfd"
+version = "0.0.0-pre.66e60c4"
 dependencies = [
  "anyhow",
  "bytes",
@@ -1291,7 +1291,7 @@ dependencies = [
 
 [[package]]
 name = "mate_executor"
-version = "0.0.0-pre.fc91cfd"
+version = "0.0.0-pre.66e60c4"
 dependencies = [
  "anyhow",
  "bytes",
@@ -1306,7 +1306,7 @@ dependencies = [
 
 [[package]]
 name = "mate_task"
-version = "0.0.0-pre.fc91cfd"
+version = "0.0.0-pre.66e60c4"
 dependencies = [
  "proc-macro2",
  "quote",
