@@ -10,7 +10,7 @@ use crate::transport::Transport;
 /// High-level IPC server that wraps any Transport implementation
 pub struct IpcServer {
     process_type: ProcessType,
-    transport: Arc<Mutex<Box<dyn Transport>>>,
+    transport: Arc<Box<dyn Transport>>,
     message_tx: UnboundedSender<Message>,
     message_rx: Arc<Mutex<UnboundedReceiver<Message>>>,
 }
@@ -18,7 +18,7 @@ pub struct IpcServer {
 impl IpcServer {
     pub fn new(process_type: ProcessType, transport: Box<dyn Transport>) -> Self {
         let (message_tx, message_rx) = unbounded_channel();
-        let transport = Arc::new(Mutex::new(transport));
+        let transport = Arc::new(transport);
         let message_rx = Arc::new(Mutex::new(message_rx));
 
         Self {
@@ -34,10 +34,8 @@ impl IpcServer {
     pub async fn listen(&self) -> Result<()> {
         let tx = self.message_tx.clone();
 
-        println!("IPC Listen");
-
         loop {
-            match self.transport.lock().await.recv().await {
+            match self.transport.recv().await {
                 Ok(msg) => {
                     if tx.send(msg).is_err() {
                         // Channel closed, exit loop
@@ -56,16 +54,12 @@ impl IpcServer {
 
     /// Send a message without waiting for response
     pub async fn send(&self, msg: Message) -> Result<()> {
-        let transport = self.transport.lock().await;
-        println!("Got lock for transport");
-        transport.send(msg).await?;
-        println!("Sent message through transport");
-        Ok(())
+        self.transport.send(msg).await
     }
 
     /// Send a message and wait for response (request-response pattern)
     pub async fn request(&self, msg: Message) -> Result<Message> {
-        self.transport.lock().await.request(msg).await
+        self.transport.request(msg).await
     }
 
     /// Get receiver for incoming messages
@@ -80,6 +74,7 @@ impl IpcServer {
 
     /// Gracefully shutdown the server
     pub async fn shutdown(&mut self) -> Result<()> {
-        self.transport.lock().await.close().await
+        // self.transport.lock().await.close().await
+        todo!()
     }
 }

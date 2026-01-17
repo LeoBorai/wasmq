@@ -1,7 +1,7 @@
 use std::time::SystemTime;
 
-use axum::{Extension, Json};
 use axum::http::StatusCode;
+use axum::{Extension, Json};
 use serde::Deserialize;
 use uuid::Uuid;
 
@@ -20,7 +20,6 @@ pub async fn handler(
     Extension(services): Extension<SharedServices>,
     Json(job_data): Json<CreateJobRequest>,
 ) -> Result<Json<Message>, ApiError> {
-    println!("Creating: {:#?}", job_data);
     let job = Job {
         id: Uuid::new_v4(),
         name: job_data.name,

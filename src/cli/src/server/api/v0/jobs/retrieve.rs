@@ -20,7 +20,6 @@ pub async fn handler(
     Extension(services): Extension<SharedServices>,
     Query(query): Query<RetrieveJobsQuery>,
 ) -> Result<Json<Vec<Job>>, ApiError> {
-    println!("Listing");
     let msg = Message {
         id: Uuid::new_v4(),
         from: ProcessType::Hub,

@@ -30,11 +30,11 @@ impl Config {
     /// Creates a [`Config`] instance from a `.toml` file
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let contents = read_to_string(path)?;
-        Ok(Self::from_toml(&contents)?)
+        Self::from_toml(&contents)
     }
 
     fn from_toml(c: &str) -> Result<Self> {
-        toml::from_str(&c)
+        toml::from_str(c)
             .with_context(|| String::from("Failed to parse configuration file in TOML format."))
     }
 }

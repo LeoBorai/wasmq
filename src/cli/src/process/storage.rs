@@ -26,15 +26,15 @@ impl StorageProcess {
     pub async fn run(&mut self) -> Result<()> {
         let ipc_clone = Arc::clone(&self.ipc);
 
-        println!("Running StorageProcess");
-
         tokio::spawn(async move {
             let _ = ipc_clone.listen().await;
         });
 
         // Process messages
         let rx = self.ipc.receiver().await;
-        while let Some(msg) = rx.lock().await.recv().await {
+        let mut rx = rx.lock().await;
+
+        while let Some(msg) = rx.recv().await {
             if let Some(response) = self.handle_message(msg.clone()).await {
                 let response_msg = Message {
                     id: Uuid::new_v4(),
@@ -44,14 +44,11 @@ impl StorageProcess {
                     reply_to: Some(msg.id),
                 };
 
-                println!("Sending message");
                 if let Err(err) = self.ipc.send(response_msg).await {
                     eprintln!(
                         "Error while sending message from Storage to IPC. {:#?}",
                         err
                     );
-                } else {
-                    println!("Message sent through IPC");
                 }
             }
         }
@@ -60,7 +57,6 @@ impl StorageProcess {
     }
 
     async fn handle_message(&mut self, msg: Message) -> Option<MessagePayload> {
-        println!("Got message in Storage. {:#?}", msg);
         match msg.payload {
             MessagePayload::StoreJob(job) => {
                 let id = job.id;
