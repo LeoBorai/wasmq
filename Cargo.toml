@@ -24,6 +24,7 @@ syn = { version = "2.0", features = ["full", "extra-traits"] }
 quote = "1.0"
 tempfile = "3.24"
 tokio = "1"
+toml = "0.9"
 uuid = "1.19"
 wasmtime = "40"
 wasmtime-wasi = "40"
