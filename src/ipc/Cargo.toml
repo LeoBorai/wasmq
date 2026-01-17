@@ -9,7 +9,6 @@ documentation.workspace = true
 [lib]
 name = "mate_ipc"
 path = "src/lib.rs"
-proc-macro = true
 
 [dependencies]
 anyhow = { workspace = true }

@@ -3,6 +3,6 @@
 //! Exposes primitives for performing IPC between
 //! mate's components.
 
-mod channel;
-mod protocol;
-mod transport;
+pub mod channel;
+pub mod protocol;
+pub mod transport;
