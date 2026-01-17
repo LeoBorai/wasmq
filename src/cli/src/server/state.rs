@@ -1,16 +1,16 @@
 use std::sync::Arc;
 
-use mate_ipc::channel::IpcServer;
+use crate::process::hub::Hub;
 
 pub type SharedServices = Arc<Services>;
 
 #[derive(Clone)]
 pub struct Services {
-    pub ipc_server: Arc<IpcServer>,
+    pub hub: Arc<Hub>,
 }
 
 impl Services {
-    pub fn new(ipc_server: Arc<IpcServer>) -> Self {
-        Self { ipc_server }
+    pub fn new(hub: Arc<Hub>) -> Self {
+        Self { hub }
     }
 }

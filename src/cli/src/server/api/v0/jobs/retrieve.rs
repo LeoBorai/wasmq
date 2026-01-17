@@ -33,7 +33,8 @@ pub async fn handler(
     };
 
     let response = services
-        .ipc_server
+        .hub
+        .ipc()
         .request(msg)
         .await
         .map_err(|e| ApiError {

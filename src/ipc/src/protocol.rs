@@ -94,3 +94,20 @@ pub struct Message {
     pub payload: MessagePayload,
     pub reply_to: Option<Uuid>, // For request-response pattern
 }
+
+impl Message {
+    pub fn new(from: ProcessType, to: ProcessType, payload: MessagePayload) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            from,
+            to,
+            payload,
+            reply_to: None,
+        }
+    }
+
+    pub fn reply_to(&mut self, id: Uuid) -> &mut Self {
+        self.reply_to = Some(id);
+        self
+    }
+}

@@ -7,13 +7,12 @@ use anyhow::Result;
 use axum::Router;
 use tokio::net::TcpListener;
 
-use mate_ipc::channel::IpcServer;
-
+use crate::process::hub::Hub;
 use crate::server::api::routes;
 use crate::server::state::Services;
 
-pub async fn run_server(ipc_server: Arc<IpcServer>) -> Result<()> {
-    let services = Arc::new(Services::new(ipc_server));
+pub async fn run_server(hub: Arc<Hub>) -> Result<()> {
+    let services = Arc::new(Services::new(hub));
     let app = Router::new().merge(routes(services));
     let listener = TcpListener::bind("0.0.0.0:8080").await?;
 

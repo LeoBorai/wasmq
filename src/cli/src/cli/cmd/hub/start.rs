@@ -1,11 +1,12 @@
+use std::process::exit;
 use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Result;
 use clap::Parser;
-use mate_config::Config;
-use mate_ipc::{channel::IpcServer, protocol::ProcessType};
 
-use crate::{process::hub::Hub, server::run_server, transport::make_transport};
+use crate::process::hub::Hub;
+use crate::server::run_server;
+use crate::utils::shutdown_signal;
 
 #[derive(Debug, Parser)]
 pub struct HubStartOpt {
@@ -16,15 +17,29 @@ pub struct HubStartOpt {
 
 impl HubStartOpt {
     pub async fn exec(&self) -> Result<()> {
-        let config = Config::from_file(&self.config)?;
         // FIXME: Transport should not know about `ProcessType` it should be only handled by IPC
-        let transport = make_transport(config.clone(), ProcessType::Hub).await?;
-        let ipc = IpcServer::new(ProcessType::Hub, transport);
-        let ipc = Arc::new(ipc);
-        let mut hub = Hub::new(self.config.clone());
+        let mut hub = Hub::new(self.config.clone()).await?;
+        let child_processes = hub.spawn_processes().await?;
+        let hub = Arc::new(hub);
 
-        hub.spawn_processes().await?;
-        run_server(ipc).await?;
+        hub.wait_for_components().await?;
+
+        tokio::select! {
+            Err(err) = run_server(Arc::clone(&hub)) => {
+                eprintln!("Server returned an error. {:#?}", err);
+            },
+            _ = shutdown_signal() => {
+                println!("Gracefully shutting down...");
+
+                for mut cp in child_processes {
+                    if let Err(err) = cp.kill().await {
+                        eprintln!("Failed to kill process. {:#?}", err);
+                    }
+                }
+
+                exit(0);
+            },
+        }
 
         Ok(())
     }
