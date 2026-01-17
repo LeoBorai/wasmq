@@ -5,7 +5,6 @@ use std::time::Duration;
 
 use anyhow::Result;
 use tokio::process::{Child, Command};
-use tokio::sync::Mutex;
 use tokio::time::sleep;
 
 use mate_ipc::channel::IpcServer;

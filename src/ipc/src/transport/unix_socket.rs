@@ -29,7 +29,7 @@ pub struct UnixSocketTransport {
     process_type: ProcessType,
     socket_path: PathBuf,
     base_path: PathBuf,
-    message_rx: UnboundedReceiver<Message>,
+    message_rx: Mutex<UnboundedReceiver<Message>>,
     message_tx: UnboundedSender<Message>,
     /// Registry for pending responses
     pending_responses: Arc<Mutex<HashMap<Uuid, Sender<Message>>>>,
@@ -47,6 +47,7 @@ impl UnixSocketTransport {
         }
 
         let (message_tx, message_rx) = unbounded_channel();
+        let message_rx = Mutex::new(message_rx);
 
         let mut transport = Self {
             process_type,
@@ -85,7 +86,7 @@ impl UnixSocketTransport {
                 match listener.accept().await {
                     Ok((stream, _addr)) => {
                         let tx = message_tx.clone();
-                        let pending = pending_responses.clone();
+                        let pending = Arc::clone(&pending_responses);
 
                         tokio::spawn(async move {
                             if let Err(e) = Self::handle_connection(stream, tx, pending).await {
@@ -219,18 +220,18 @@ impl Transport for UnixSocketTransport {
         self.send_message_internal(&msg).await
     }
 
-    async fn recv(&mut self) -> Result<Message> {
-        self.message_rx
-            .recv()
+    async fn recv(&self) -> Result<Message> {
+        let mut rx = self.message_rx.lock().await;
+        rx.recv()
             .await
-            .ok_or_else(|| anyhow::anyhow!("Message channel closed"))
+            .ok_or_else(|| anyhow!("Message channel closed"))
     }
 
     /// Creates a Request to another `UnixSocket`.
     ///
     /// Every request is stored in the `pending_responses` registry
     /// allowing to keep track similar to _ticket_ system.
-    async fn request(&mut self, msg: Message) -> Result<Message> {
+    async fn request(&self, msg: Message) -> Result<Message> {
         let (tx, rx) = channel();
 
         {
@@ -308,8 +309,7 @@ mod tests {
         // Create two transports
         let transport1 = UnixSocketTransport::new(base_path.clone(), ProcessType::Hub).await?;
 
-        let mut transport2 =
-            UnixSocketTransport::new(base_path.clone(), ProcessType::Storage).await?;
+        let transport2 = UnixSocketTransport::new(base_path.clone(), ProcessType::Storage).await?;
 
         // Give listeners time to start
         sleep(Duration::from_millis(100)).await;
@@ -340,10 +340,8 @@ mod tests {
         let temp_dir = TempDir::new()?;
         let base_path = temp_dir.path().to_path_buf();
 
-        let mut transport1 = UnixSocketTransport::new(base_path.clone(), ProcessType::Hub).await?;
-
-        let mut transport2 =
-            UnixSocketTransport::new(base_path.clone(), ProcessType::Storage).await?;
+        let transport1 = UnixSocketTransport::new(base_path.clone(), ProcessType::Hub).await?;
+        let transport2 = UnixSocketTransport::new(base_path.clone(), ProcessType::Storage).await?;
 
         sleep(Duration::from_millis(100)).await;
 

@@ -1,14 +1,9 @@
-use std::{path::PathBuf, sync::Arc, time::Duration};
+use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Result;
 use clap::Parser;
-use mate_config::{Config, transport::TransportConfig};
-use mate_ipc::{
-    channel::IpcServer,
-    protocol::ProcessType,
-    transport::{Transport, unix_socket::UnixSocketTransport},
-};
-use tokio::time::sleep;
+use mate_config::Config;
+use mate_ipc::{channel::IpcServer, protocol::ProcessType};
 
 use crate::{process::hub::Hub, server::run_server, transport::make_transport};
 
