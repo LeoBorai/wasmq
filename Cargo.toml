@@ -1,6 +1,6 @@
 [workspace]
 members = ["./src/*", "./tasks/*"]
-default-members = ["src/mate"]
+default-members = ["src/cli"]
 resolver = "3"
 
 [workspace.package]
