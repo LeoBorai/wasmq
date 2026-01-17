@@ -21,7 +21,7 @@ impl HubStartOpt {
         let transport = make_transport(config.clone(), ProcessType::Hub).await?;
         let ipc = IpcServer::new(ProcessType::Hub, transport);
         let ipc = Arc::new(ipc);
-        let mut hub = Hub::new(self.config.clone(), Arc::clone(&ipc));
+        let mut hub = Hub::new(self.config.clone());
 
         hub.spawn_processes().await?;
         run_server(ipc).await?;

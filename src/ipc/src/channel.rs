@@ -74,7 +74,6 @@ impl IpcServer {
 
     /// Gracefully shutdown the server
     pub async fn shutdown(&mut self) -> Result<()> {
-        // self.transport.lock().await.close().await
-        todo!()
+        self.transport.close().await
     }
 }

@@ -10,5 +10,5 @@ pub trait Transport: Send + Sync {
     async fn send(&self, msg: Message) -> Result<()>;
     async fn recv(&self) -> Result<Message>;
     async fn request(&self, msg: Message) -> Result<Message>;
-    async fn close(&mut self) -> Result<()>;
+    async fn close(&self) -> Result<()>;
 }

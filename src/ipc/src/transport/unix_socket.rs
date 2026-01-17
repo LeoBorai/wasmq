@@ -264,8 +264,8 @@ impl Transport for UnixSocketTransport {
     /// 1. Aborts the listener task
     /// 2. Removes the Socket file (`.sock`)
     /// 3. Clears pending responses
-    async fn close(&mut self) -> Result<()> {
-        if let Some(handle) = self.listener_handle.take() {
+    async fn close(&self) -> Result<()> {
+        if let Some(ref handle) = self.listener_handle {
             handle.abort();
         }
 
