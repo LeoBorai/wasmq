@@ -14,6 +14,7 @@ documentation = "https://docs.rs/mate"
 [workspace.dependencies]
 anyhow = "1.0"
 async-trait = "0.1"
+axum = "0.8"
 bytes = "1.11"
 clap = "4.5"
 log = "0.4"
@@ -32,6 +33,8 @@ wasmtime-wasi-http = "40"
 wit-bindgen = "0.51"
 wstd = "0.6"
 
-mate-ipc = { path = "./src/ipc" }
+mate-config = { path = "./src/config" }
 mate-executor = { path = "./src/executor" }
+mate-ipc = { path = "./src/ipc" }
+mate = { path = "./src/mate" }
 mate-task = { path = "./src/task" }
