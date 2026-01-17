@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 use uuid::Uuid;
 
 use mate_ipc::channel::IpcServer;
@@ -24,25 +24,28 @@ impl StorageProcess {
     }
 
     pub async fn run(&mut self) -> Result<()> {
+        tokio::select! {
+            Err(err) = self.message_consumer() => {
+                bail!("Storage message consumer failed. {:#?}", err);
+            }
+        }
+    }
+
+    async fn message_consumer(&mut self) -> Result<()> {
         let ipc_clone = Arc::clone(&self.ipc);
 
         tokio::spawn(async move {
             let _ = ipc_clone.listen().await;
         });
 
-        // Process messages
         let rx = self.ipc.receiver().await;
         let mut rx = rx.lock().await;
 
         while let Some(msg) = rx.recv().await {
             if let Some(response) = self.handle_message(msg.clone()).await {
-                let response_msg = Message {
-                    id: Uuid::new_v4(),
-                    from: ProcessType::Storage,
-                    to: msg.from,
-                    payload: response,
-                    reply_to: Some(msg.id),
-                };
+                let response_msg = Message::new(ProcessType::Storage, msg.from, response)
+                    .reply_to(msg.id)
+                    .to_owned();
 
                 if let Err(err) = self.ipc.send(response_msg).await {
                     eprintln!(
@@ -72,6 +75,8 @@ impl StorageProcess {
                     .collect();
                 Some(MessagePayload::JobsResult(jobs))
             }
+            MessagePayload::Ping => Some(MessagePayload::Pong),
+            MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
             _ => None,
         }
     }

@@ -2,6 +2,7 @@ mod cli;
 mod process;
 mod server;
 mod transport;
+mod utils;
 
 use anyhow::Result;
 use clap::Parser;

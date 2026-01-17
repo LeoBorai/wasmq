@@ -32,15 +32,14 @@ pub async fn handler(
         retry_count: 0,
         max_retries: 3,
     };
-    let msg = Message {
-        id: Uuid::new_v4(),
-        from: ProcessType::Hub,
-        to: ProcessType::Storage,
-        payload: MessagePayload::StoreJob(job.clone()),
-        reply_to: None,
-    };
+    let msg = Message::new(
+        ProcessType::Hub,
+        ProcessType::Storage,
+        MessagePayload::StoreJob(job.clone()),
+    );
     let message = services
-        .ipc_server
+        .hub
+        .ipc()
         .request(msg)
         .await
         .map_err(|e| e.to_string())
