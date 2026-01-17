@@ -25,7 +25,7 @@ quote = "1.0"
 wasmtime = "40"
 wasmtime-wasi = "40"
 wasmtime-wasi-http = "40"
-wit-bindgen = "0.50"
+wit-bindgen = "0.51"
 wstd = "0.6"
 
 mate_executor = { path = "./src/executor" }
