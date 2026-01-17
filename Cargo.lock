@@ -1279,11 +1279,16 @@ dependencies = [
 [[package]]
 name = "mate"
 version = "0.0.0-pre.fc91cfd"
+
+[[package]]
+name = "mate-cli"
+version = "0.0.0-pre.fc91cfd"
 dependencies = [
  "anyhow",
  "bytes",
  "clap",
  "mate-executor",
+ "mate-ipc",
  "serde",
  "serde_json",
  "tokio",
