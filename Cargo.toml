@@ -13,6 +13,7 @@ documentation = "https://docs.rs/mate"
 
 [workspace.dependencies]
 anyhow = "1.0"
+async-trait = "0.1"
 bytes = "1.11"
 clap = "4.5"
 log = "0.4"
@@ -20,8 +21,10 @@ proc-macro2 = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 syn = { version = "2.0", features = ["full", "extra-traits"] }
-tokio = "1"
 quote = "1.0"
+tempfile = "3.24"
+tokio = "1"
+uuid = "1.19"
 wasmtime = "40"
 wasmtime-wasi = "40"
 wasmtime-wasi-http = "40"

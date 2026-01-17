@@ -7,7 +7,7 @@ description.workspace = true
 documentation.workspace = true
 
 [lib]
-name = "mate-executor"
+name = "mate_executor"
 path = "src/lib.rs"
 
 [dependencies]
