@@ -1,5 +1,5 @@
 [package]
-name = "mate_executor"
+name = "mate-executor"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
@@ -7,7 +7,7 @@ description.workspace = true
 documentation.workspace = true
 
 [lib]
-name = "mate_executor"
+name = "mate-executor"
 path = "src/lib.rs"
 
 [dependencies]

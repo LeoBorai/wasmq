@@ -1,5 +1,5 @@
 [package]
-name = "mate_task"
+name = "mate-task"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
@@ -7,7 +7,7 @@ description.workspace = true
 documentation.workspace = true
 
 [lib]
-name = "mate_task"
+name = "mate-task"
 path = "src/lib.rs"
 proc-macro = true
 

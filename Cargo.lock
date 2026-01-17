@@ -1290,6 +1290,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mate-ipc"
+version = "0.0.0-pre.fc91cfd"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "wit-bindgen 0.50.0",
+]
+
+[[package]]
 name = "mate_executor"
 version = "0.0.0-pre.fc91cfd"
 dependencies = [

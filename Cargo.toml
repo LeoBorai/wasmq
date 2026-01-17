@@ -28,5 +28,6 @@ wasmtime-wasi-http = "40"
 wit-bindgen = "0.51"
 wstd = "0.6"
 
-mate_executor = { path = "./src/executor" }
-mate_task = { path = "./src/task" }
+mate-ipc = { path = "./src/ipc" }
+mate-executor = { path = "./src/executor" }
+mate-task = { path = "./src/task" }
