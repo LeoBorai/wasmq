@@ -3,8 +3,10 @@ use std::sync::Arc;
 use anyhow::{Result, bail};
 
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Job, JobResult, Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
+use serde_json::Value;
+use tracing::error;
 
 pub struct ExecutorProcess {
     id: usize,
@@ -24,6 +26,29 @@ impl ExecutorProcess {
                 bail!("Storage message consumer failed. {:#?}", err);
             }
         }
+    }
+
+    pub async fn execute(&self, job: Job) -> Result<()> {
+        let process_type = ProcessType::Executor(self.id);
+        let ipc = Arc::clone(&self.ipc);
+
+        tokio::spawn(async move {
+            println!("Executing Job: {}", job.id);
+            println!("Args: {}", job.payload);
+
+            if let Err(err) = ipc
+                .request(Message::new(
+                    process_type,
+                    ProcessType::Storage,
+                    MessagePayload::JobCompleted(job.id, JobResult::Success(Value::Null)),
+                ))
+                .await
+            {
+                error!(?err, "Failed to send JobCompleted message to Storage");
+            }
+        });
+
+        Ok(())
     }
 
     async fn message_consumer(&self) -> Result<()> {
@@ -56,6 +81,10 @@ impl ExecutorProcess {
 
     async fn handle_message(&self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
+            MessagePayload::ExecuteJob(job) => match self.execute(job.clone()).await {
+                Ok(()) => Some(MessagePayload::JobAccepted(job.id)),
+                Err(err) => Some(MessagePayload::JobFailed(job.id, err.to_string())),
+            },
             MessagePayload::Ping => Some(MessagePayload::Pong),
             MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
             _ => None,
