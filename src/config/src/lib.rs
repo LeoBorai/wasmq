@@ -1,5 +1,6 @@
 pub mod executor;
 pub mod hub;
+pub mod registry;
 pub mod scheduler;
 pub mod storage;
 pub mod transport;
@@ -11,11 +12,11 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::executor::ExecutorConfig;
+use crate::hub::HubConfig;
+use crate::registry::RegistryConfig;
 use crate::scheduler::SchedulerConfig;
 use crate::storage::StorageConfig;
-
-use self::hub::HubConfig;
-use self::transport::TransportConfig;
+use crate::transport::TransportConfig;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
@@ -24,6 +25,7 @@ pub struct Config {
     pub storage: StorageConfig,
     pub scheduler: SchedulerConfig,
     pub executors: ExecutorConfig,
+    pub registry: RegistryConfig,
 }
 
 impl Config {
@@ -62,6 +64,9 @@ mod test {
             [executors]
             count = 2
             max_concurrent_jobs = 5
+
+            [registry]
+            path = "./reg"
             "#;
 
         let config = Config::from_toml(config_toml);

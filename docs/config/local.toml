@@ -14,3 +14,6 @@ check_interval_secs = 1
 [executors]
 count = 2
 max_concurrent_jobs = 5
+
+[registry]
+path = "./reg"

@@ -13,6 +13,7 @@ pub struct Job {
     pub payload: Value,
     pub status: JobStatus,
     pub scheduled_at: SystemTime,
+    pub task: String,
     pub started_at: Option<SystemTime>,
     pub completed_at: Option<SystemTime>,
     pub result: Option<JobResult>,

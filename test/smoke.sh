@@ -9,7 +9,7 @@ JOB1=$(curl -s -X POST $API_URL/api/v0/jobs \
   -H "Content-Type: application/json" \
   -d '{
     "name": "send_email",
-    "payload": {"to": "user1@example.com"}
+    "payload": {"api_url":"https://httpbin.org/post","data":{"sample_key":"sample_value"}}
   }')
 echo "Job 1: $(echo $JOB1 | jq -r '.id')"
 
@@ -18,7 +18,7 @@ JOB2=$(curl -s -X POST $API_URL/api/v0/jobs \
   -H "Content-Type: application/json" \
   -d '{
     "name": "process_data",
-    "payload": {"file": "data.csv"}
+    "payload": {"api_url":"https://httpbin.org/post","data":{"sample_key":"sample_value"}}
   }')
 echo "Job 2: $(echo $JOB2 | jq -r '.id')"
 
@@ -27,7 +27,7 @@ JOB3=$(curl -s -X POST $API_URL/api/v0/jobs \
   -H "Content-Type: application/json" \
   -d '{
     "name": "generate_report",
-    "payload": {"type": "monthly"}
+    "payload": {"api_url":"https://httpbin.org/post","data":{"sample_key":"sample_value"}}
   }')
 echo "Job 3: $(echo $JOB3 | jq -r '.id')"
 

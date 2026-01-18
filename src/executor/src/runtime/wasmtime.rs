@@ -33,6 +33,7 @@ impl WasiHttpView for ComponentRunStates {
     }
 }
 
+#[derive(Clone)]
 pub struct WasmtimeRuntime {}
 
 impl WasmtimeRuntime {

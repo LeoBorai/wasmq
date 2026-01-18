@@ -38,6 +38,7 @@ pub async fn handler(
         result: None,
         retry_count: 0,
         max_retries: 3,
+        task: String::from("http"),
     };
     let msg = Message::new(
         ProcessType::Hub,

@@ -22,7 +22,7 @@ impl ExecutorSpawnOpt {
     pub async fn exec(&self) -> Result<()> {
         let config = Config::from_file(&self.config)?;
         let transport = make_transport(config.clone(), ProcessType::Executor(self.id)).await?;
-        let mut executor = ExecutorProcess::new(transport, self.id);
+        let mut executor = ExecutorProcess::new(transport, config, self.id)?;
 
         info!(id=%self.id, "Starting executor process…");
         executor.run().await?;
