@@ -51,12 +51,12 @@ impl SchedulerProcess {
     }
 
     async fn check_and_schedule_jobs(&self) -> Result<()> {
-        // Query storage for pending jobs
+        // Query storage for Scheduled jobs
         let query_msg = Message {
             id: Uuid::new_v4(),
             from: ProcessType::Scheduler,
             to: ProcessType::Storage,
-            payload: MessagePayload::QueryPendingJobs(SystemTime::now()),
+            payload: MessagePayload::QueryScheduledJobs(SystemTime::now()),
             reply_to: None,
         };
 

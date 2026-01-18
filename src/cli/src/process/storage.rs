@@ -75,7 +75,7 @@ impl StorageProcess {
                     .collect();
                 Some(MessagePayload::JobsResult(jobs))
             }
-            MessagePayload::QueryPendingJobs(sys_time) => {
+            MessagePayload::QueryScheduledJobs(sys_time) => {
                 let jobs: Vec<Job> = self
                     .jobs
                     .values()
