@@ -1,14 +1,14 @@
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 use tokio::sync::Mutex;
 use tokio::time::interval;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Job, Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Job, JobStatus, Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
 pub struct SchedulerProcess {
@@ -66,7 +66,9 @@ impl SchedulerProcess {
 
         if let MessagePayload::JobsResult(jobs) = response.payload {
             for job in jobs {
-                self.dispatch_job(job).await?;
+                if let Err(err) = self.dispatch_job(job).await {
+                    warn!(?err, "Failed to dispatch job");
+                }
             }
         }
 
@@ -80,6 +82,7 @@ impl SchedulerProcess {
         let executor_id = *current_executor;
         *current_executor = (*current_executor + 1) % self.executor_count;
         drop(current_executor);
+        let job_id = job.id;
 
         let msg = Message::new(
             ProcessType::Scheduler,
@@ -87,8 +90,23 @@ impl SchedulerProcess {
             MessagePayload::ExecuteJob(job),
         );
 
-        if let Err(err) = self.ipc.request(msg).await {
-            warn!(?err, "Failed te send message");
+        if let Err(err) = self.ipc.send(msg).await {
+            bail!("Failed to send message to dispatch job via IPC. {:?}", err);
+        }
+
+        if let Err(err) = self
+            .ipc
+            .send(Message::new(
+                ProcessType::Scheduler,
+                ProcessType::Storage,
+                MessagePayload::UpdateJobStatus(job_id, JobStatus::Pending),
+            ))
+            .await
+        {
+            error!(
+                ?err,
+                "Failed to send message to Storage in order to update Job status"
+            );
         }
 
         Ok(())
@@ -112,7 +130,7 @@ impl SchedulerProcess {
 
                 if let Err(err) = self.ipc.send(response_msg).await {
                     eprintln!(
-                        "Error while sending message from Storage to IPC. {:#?}",
+                        "Error while sending message from Scheduler to IPC. {:#?}",
                         err
                     );
                 }
