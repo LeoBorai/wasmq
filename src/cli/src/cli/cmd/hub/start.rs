@@ -29,8 +29,6 @@ impl HubStartOpt {
                 eprintln!("Server returned an error. {:#?}", err);
             },
             _ = shutdown_signal() => {
-                println!("Gracefully shutting down...");
-
                 for mut cp in child_processes {
                     if let Err(err) = cp.kill().await {
                         eprintln!("Failed to kill process. {:#?}", err);

@@ -23,6 +23,4 @@ pub async fn shutdown_signal() {
         _ = ctrl_c => {},
         _ = terminate => {},
     }
-
-    println!("Shutdown signal received");
 }
