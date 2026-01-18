@@ -10,6 +10,7 @@ use tokio::net::TcpListener;
 use crate::process::hub::Hub;
 use crate::server::api::routes;
 use crate::server::state::Services;
+use crate::utils::shutdown_signal;
 
 pub async fn run_server(hub: Arc<Hub>) -> Result<()> {
     let services = Arc::new(Services::new(hub));
@@ -18,6 +19,8 @@ pub async fn run_server(hub: Arc<Hub>) -> Result<()> {
 
     println!("Server listening...");
 
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
     Ok(())
 }
