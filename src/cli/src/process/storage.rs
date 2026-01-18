@@ -76,9 +76,9 @@ impl StorageProcess {
                     return Some(MessagePayload::JobStored(Ok(job.clone())));
                 }
 
-                Some(MessagePayload::JobStored(Err(
-                    "Failed to update job completion status".to_string(),
-                )))
+                Some(MessagePayload::JobUpdated(Err(format!(
+                    "Failed to update completion status for job {id}: job not found in storage"
+                ))))
             }
             MessagePayload::StoreJob(job) => {
                 let id = job.id;

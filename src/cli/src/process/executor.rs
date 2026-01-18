@@ -23,7 +23,7 @@ impl ExecutorProcess {
     pub async fn run(&mut self) -> Result<()> {
         tokio::select! {
             Err(err) = self.message_consumer() => {
-                bail!("Storage message consumer failed. {:#?}", err);
+                bail!("Executor message consumer failed. {:#?}", err);
             }
         }
     }
@@ -69,7 +69,7 @@ impl ExecutorProcess {
 
                 if let Err(err) = self.ipc.send(response_msg).await {
                     eprintln!(
-                        "Error while sending message from Storage to IPC. {:#?}",
+                        "Error while sending message from Executor to IPC. {:#?}",
                         err
                     );
                 }

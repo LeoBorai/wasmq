@@ -102,7 +102,6 @@ impl Hub {
 
         println!("✓ Scheduler OK!");
 
-        // Spawn Executor processes (e.g., 4 workers)
         for i in 0..4 {
             self.ipc
                 .request(Message::new(
