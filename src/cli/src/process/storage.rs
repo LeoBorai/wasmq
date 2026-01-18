@@ -5,7 +5,7 @@ use anyhow::{Result, bail};
 use uuid::Uuid;
 
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Job, Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Job, JobStatus, Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
 pub struct StorageProcess {
@@ -71,6 +71,16 @@ impl StorageProcess {
                     .jobs
                     .values()
                     .filter(|j| query.status.as_ref().is_none_or(|s| &j.status == s))
+                    .cloned()
+                    .collect();
+                Some(MessagePayload::JobsResult(jobs))
+            }
+            MessagePayload::QueryPendingJobs(sys_time) => {
+                let jobs: Vec<Job> = self
+                    .jobs
+                    .values()
+                    .filter(|j| j.status == JobStatus::Scheduled)
+                    .filter(|j| j.scheduled_at <= sys_time)
                     .cloned()
                     .collect();
                 Some(MessagePayload::JobsResult(jobs))

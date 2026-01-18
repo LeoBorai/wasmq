@@ -31,7 +31,7 @@ pub async fn handler(
         id: Uuid::new_v4(),
         name: job_data.name,
         payload: job_data.payload,
-        status: JobStatus::Pending,
+        status: JobStatus::Scheduled,
         scheduled_at: SystemTime::now(),
         started_at: None,
         completed_at: None,

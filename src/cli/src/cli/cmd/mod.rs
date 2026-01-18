@@ -1,9 +1,12 @@
 pub mod hub;
+pub mod scheduler;
 pub mod storage;
 pub mod task;
 
 use anyhow::Result;
 use clap::Parser;
+
+use crate::cli::cmd::scheduler::SchedulerCmd;
 
 use self::hub::HubCmd;
 use self::storage::StorageCmd;
@@ -14,6 +17,9 @@ pub enum Cmd {
     /// Hub management
     #[clap(subcommand)]
     Hub(HubCmd),
+    /// Scheduler management
+    #[clap(subcommand)]
+    Scheduler(SchedulerCmd),
     /// Storage management
     #[clap(subcommand)]
     Storage(StorageCmd),
@@ -26,6 +32,7 @@ impl Cmd {
     pub async fn exec(&self) -> Result<()> {
         match &self {
             Cmd::Hub(cmd) => cmd.exec().await,
+            Cmd::Scheduler(cmd) => cmd.exec().await,
             Cmd::Storage(cmd) => cmd.exec().await,
             Cmd::Task(cmd) => cmd.exec().await,
         }
