@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 use async_trait::async_trait;
 use tokio::fs::create_dir_all;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -112,7 +112,7 @@ impl UnixSocketTransport {
     ///
     /// Messages are read in parts, the first 4 bytes (little-endian u32)
     /// represent message's length if message exceeds [`MAX_MESSAGE_SIZE`]
-    /// then the message is skipped and return is returned.
+    /// then error is returned.
     ///
     /// # Handling
     ///
@@ -131,7 +131,7 @@ impl UnixSocketTransport {
         let len = u32::from_le_bytes(len_buf) as usize;
 
         if len > MAX_MESSAGE_SIZE {
-            return Err(anyhow::anyhow!("Message too large: {} bytes", len));
+            bail!("Message too large: {} bytes", len);
         }
 
         // Message payload
