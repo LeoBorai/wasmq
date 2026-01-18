@@ -3,6 +3,7 @@ use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Result;
 use clap::Parser;
+use tracing::error;
 
 use crate::process::hub::Hub;
 use crate::server::run_server;
@@ -25,13 +26,13 @@ impl HubStartOpt {
         hub.wait_for_components().await?;
 
         tokio::select! {
-            Err(err) = run_server(Arc::clone(&hub)) => {
-                eprintln!("Server returned an error. {:#?}", err);
+            Err(err) = run_server(hub.config(), Arc::clone(&hub)) => {
+                error!("Server returned an error. {:#?}", err);
             },
             _ = shutdown_signal() => {
                 for mut cp in child_processes {
                     if let Err(err) = cp.kill().await {
-                        eprintln!("Failed to kill process. {:#?}", err);
+                        error!("Failed to kill process. {:#?}", err);
                     }
                 }
 

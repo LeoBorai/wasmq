@@ -32,6 +32,11 @@ impl Hub {
         })
     }
 
+    #[inline]
+    pub fn config(&self) -> &Config {
+        &self.config
+    }
+
     pub async fn spawn_processes(&mut self) -> Result<Vec<Child>> {
         let mate_exe = current_exe()?;
         let mut child_processes = Vec::new();

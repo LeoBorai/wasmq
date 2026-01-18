@@ -5,6 +5,7 @@ use clap::Parser;
 
 use mate_config::Config;
 use mate_ipc::protocol::ProcessType;
+use tracing::info;
 
 use crate::{process::storage::StorageProcess, transport::make_transport};
 
@@ -20,6 +21,7 @@ impl StorageSpawnOpt {
         let transport = make_transport(config.clone(), ProcessType::Storage).await?;
         let mut storage = StorageProcess::new(transport);
 
+        info!("Starting storage process…");
         storage.run().await?;
 
         Ok(())

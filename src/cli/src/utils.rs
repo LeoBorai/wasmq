@@ -1,4 +1,5 @@
 use tokio::signal;
+use tracing::debug;
 
 /// Waits for a shutdown signal (Ctrl+C or termination signal on Unix).
 pub async fn shutdown_signal() {
@@ -20,7 +21,11 @@ pub async fn shutdown_signal() {
     let terminate = std::future::pending::<()>();
 
     tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {},
+        _ = ctrl_c => {
+            debug!("Received Ctrl+C Signal");
+        },
+        _ = terminate => {
+            debug!("Received termination signal");
+        },
     }
 }
