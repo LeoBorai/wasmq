@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::SystemTime;
 
 use anyhow::{Result, bail};
+use tracing::debug;
 use uuid::Uuid;
 
 use mate_ipc::channel::IpcServer;
@@ -63,6 +65,21 @@ impl StorageProcess {
 
     async fn handle_message(&mut self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
+            MessagePayload::JobCompleted(id, result) => {
+                debug!(%id, ?result, "Job completed");
+
+                if let Some(job) = self.jobs.get_mut(&id) {
+                    job.completed_at = Some(SystemTime::now());
+                    job.result = Some(result);
+                    job.status = JobStatus::Completed;
+
+                    return Some(MessagePayload::JobStored(Ok(job.clone())));
+                }
+
+                Some(MessagePayload::JobUpdated(Err(format!(
+                    "Failed to update completion status for job {id}: job not found in storage"
+                ))))
+            }
             MessagePayload::StoreJob(job) => {
                 let id = job.id;
                 self.jobs.insert(id, job.clone());

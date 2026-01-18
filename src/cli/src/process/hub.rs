@@ -61,6 +61,20 @@ impl Hub {
 
         child_processes.push(scheduler);
 
+        // Spawn Executor processes (e.g., 4 workers)
+        for i in 0..4 {
+            let executor = Command::new(&mate_exe)
+                .arg("executor")
+                .arg("spawn")
+                .arg("--config")
+                .arg(self.config_path.to_str().unwrap())
+                .arg("--id")
+                .arg(i.to_string())
+                .spawn()?;
+
+            child_processes.push(executor);
+        }
+
         // TODO: Perform Polling via Transport perhaps?
         sleep(Duration::from_secs(1)).await;
 
@@ -87,6 +101,18 @@ impl Hub {
             .await?;
 
         println!("✓ Scheduler OK!");
+
+        for i in 0..4 {
+            self.ipc
+                .request(Message::new(
+                    IPC_SENDER_HUB,
+                    ProcessType::Executor(i),
+                    MessagePayload::Ping,
+                ))
+                .await?;
+
+            println!("✓ Executor({i}) OK!");
+        }
 
         Ok(())
     }
