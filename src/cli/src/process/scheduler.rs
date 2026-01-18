@@ -19,7 +19,7 @@ pub struct SchedulerProcess {
 
 impl SchedulerProcess {
     pub async fn new(transport: Box<dyn Transport>, executor_count: usize) -> Result<Self> {
-        let ipc = Arc::new(IpcServer::new(ProcessType::Storage, transport));
+        let ipc = Arc::new(IpcServer::new(ProcessType::Scheduler, transport));
 
         Ok(Self {
             ipc,
