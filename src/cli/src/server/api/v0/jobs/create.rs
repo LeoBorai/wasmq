@@ -20,6 +20,13 @@ pub async fn handler(
     Extension(services): Extension<SharedServices>,
     Json(job_data): Json<CreateJobRequest>,
 ) -> Result<Json<Message>, ApiError> {
+    if job_data.name.is_empty() || job_data.name.contains(' ') {
+        return Err(ApiError {
+            message: String::from("Job name cannot contain spaces and cannot be empty"),
+            status: StatusCode::BAD_REQUEST,
+        });
+    }
+
     let job = Job {
         id: Uuid::new_v4(),
         name: job_data.name,
