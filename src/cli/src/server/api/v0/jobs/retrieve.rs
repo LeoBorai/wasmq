@@ -12,8 +12,6 @@ use crate::server::state::SharedServices;
 #[derive(Deserialize)]
 pub struct RetrieveJobsQuery {
     status: Option<JobStatus>,
-    limit: Option<usize>,
-    offset: Option<usize>,
 }
 
 pub async fn handler(
@@ -26,8 +24,6 @@ pub async fn handler(
         to: ProcessType::Storage,
         payload: MessagePayload::QueryJobs(JobQuery {
             status: query.status,
-            limit: query.limit,
-            offset: query.offset,
         }),
         reply_to: None,
     };
