@@ -11,6 +11,8 @@ use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Job, JobStatus, Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
+const IPC_SENDER_SCHEDULER: ProcessType = ProcessType::Scheduler;
+
 pub struct SchedulerProcess {
     ipc: Arc<IpcServer>,
     executor_count: usize,
@@ -19,7 +21,7 @@ pub struct SchedulerProcess {
 
 impl SchedulerProcess {
     pub async fn new(transport: Box<dyn Transport>, executor_count: usize) -> Result<Self> {
-        let ipc = Arc::new(IpcServer::new(ProcessType::Scheduler, transport));
+        let ipc = Arc::new(IpcServer::new(IPC_SENDER_SCHEDULER, transport));
 
         Ok(Self {
             ipc,
@@ -54,7 +56,7 @@ impl SchedulerProcess {
         // Query storage for Scheduled jobs
         let query_msg = Message {
             id: Uuid::new_v4(),
-            from: ProcessType::Scheduler,
+            from: IPC_SENDER_SCHEDULER,
             to: ProcessType::Storage,
             payload: MessagePayload::QueryScheduledJobs(SystemTime::now()),
             reply_to: None,
@@ -85,7 +87,7 @@ impl SchedulerProcess {
         let job_id = job.id;
 
         let msg = Message::new(
-            ProcessType::Scheduler,
+            IPC_SENDER_SCHEDULER,
             ProcessType::Executor(executor_id),
             MessagePayload::ExecuteJob(job),
         );
@@ -97,7 +99,7 @@ impl SchedulerProcess {
         if let Err(err) = self
             .ipc
             .send(Message::new(
-                ProcessType::Scheduler,
+                IPC_SENDER_SCHEDULER,
                 ProcessType::Storage,
                 MessagePayload::UpdateJobStatus(job_id, JobStatus::Pending),
             ))

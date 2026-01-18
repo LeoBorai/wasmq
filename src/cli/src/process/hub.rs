@@ -13,6 +13,8 @@ use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 
 use crate::transport::make_transport;
 
+const IPC_SENDER_HUB: ProcessType = ProcessType::Hub;
+
 pub struct Hub {
     config: Config,
     config_path: PathBuf,
@@ -22,8 +24,8 @@ pub struct Hub {
 impl Hub {
     pub async fn new(config_path: PathBuf) -> Result<Self> {
         let config = Config::from_file(&config_path)?;
-        let transport = make_transport(config.clone(), ProcessType::Hub).await?;
-        let ipc = IpcServer::new(ProcessType::Hub, transport);
+        let transport = make_transport(config.clone(), IPC_SENDER_HUB).await?;
+        let ipc = IpcServer::new(IPC_SENDER_HUB, transport);
         let ipc = Arc::new(ipc);
 
         Ok(Self {
@@ -68,7 +70,7 @@ impl Hub {
     pub async fn wait_for_components(&self) -> Result<()> {
         self.ipc
             .request(Message::new(
-                ProcessType::Hub,
+                IPC_SENDER_HUB,
                 ProcessType::Storage,
                 MessagePayload::Ping,
             ))
@@ -78,7 +80,7 @@ impl Hub {
 
         self.ipc
             .request(Message::new(
-                ProcessType::Hub,
+                IPC_SENDER_HUB,
                 ProcessType::Scheduler,
                 MessagePayload::Ping,
             ))

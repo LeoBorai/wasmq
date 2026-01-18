@@ -8,6 +8,8 @@ use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Job, JobStatus, Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
+const IPC_SENDER_STORAGE: ProcessType = ProcessType::Storage;
+
 pub struct StorageProcess {
     ipc: Arc<IpcServer>,
     jobs: HashMap<Uuid, Job>,
@@ -15,7 +17,7 @@ pub struct StorageProcess {
 
 impl StorageProcess {
     pub fn new(transport: Box<dyn Transport>) -> Self {
-        let ipc = Arc::new(IpcServer::new(ProcessType::Storage, transport));
+        let ipc = Arc::new(IpcServer::new(IPC_SENDER_STORAGE, transport));
 
         Self {
             jobs: HashMap::new(),
@@ -43,7 +45,7 @@ impl StorageProcess {
 
         while let Some(msg) = rx.recv().await {
             if let Some(response) = self.handle_message(msg.clone()).await {
-                let response_msg = Message::new(ProcessType::Storage, msg.from, response)
+                let response_msg = Message::new(IPC_SENDER_STORAGE, msg.from, response)
                     .reply_to(msg.id)
                     .to_owned();
 
