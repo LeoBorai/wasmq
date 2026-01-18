@@ -4,13 +4,16 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use mate_config::Config;
-use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Message, ProcessType};
 use tokio::process::{Child, Command};
 use tokio::time::sleep;
 
+use mate_config::Config;
+use mate_ipc::channel::IpcServer;
+use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+
 use crate::transport::make_transport;
+
+const IPC_SENDER_HUB: ProcessType = ProcessType::Hub;
 
 pub struct Hub {
     config: Config,
@@ -21,8 +24,8 @@ pub struct Hub {
 impl Hub {
     pub async fn new(config_path: PathBuf) -> Result<Self> {
         let config = Config::from_file(&config_path)?;
-        let transport = make_transport(config.clone(), ProcessType::Hub).await?;
-        let ipc = IpcServer::new(ProcessType::Hub, transport);
+        let transport = make_transport(config.clone(), IPC_SENDER_HUB).await?;
+        let ipc = IpcServer::new(IPC_SENDER_HUB, transport);
         let ipc = Arc::new(ipc);
 
         Ok(Self {
@@ -49,6 +52,15 @@ impl Hub {
 
         child_processes.push(storage);
 
+        let scheduler = Command::new(&mate_exe)
+            .arg("scheduler")
+            .arg("spawn")
+            .arg("--config")
+            .arg(self.config_path.to_str().unwrap())
+            .spawn()?;
+
+        child_processes.push(scheduler);
+
         // TODO: Perform Polling via Transport perhaps?
         sleep(Duration::from_secs(1)).await;
 
@@ -58,13 +70,24 @@ impl Hub {
     pub async fn wait_for_components(&self) -> Result<()> {
         self.ipc
             .request(Message::new(
-                ProcessType::Hub,
+                IPC_SENDER_HUB,
                 ProcessType::Storage,
-                mate_ipc::protocol::MessagePayload::Ping,
+                MessagePayload::Ping,
             ))
             .await?;
 
         println!("✓ Storage OK!");
+
+        self.ipc
+            .request(Message::new(
+                IPC_SENDER_HUB,
+                ProcessType::Scheduler,
+                MessagePayload::Ping,
+            ))
+            .await?;
+
+        println!("✓ Scheduler OK!");
+
         Ok(())
     }
 

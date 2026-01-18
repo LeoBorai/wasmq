@@ -5,8 +5,10 @@ use anyhow::{Result, bail};
 use uuid::Uuid;
 
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Job, Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Job, JobStatus, Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
+
+const IPC_SENDER_STORAGE: ProcessType = ProcessType::Storage;
 
 pub struct StorageProcess {
     ipc: Arc<IpcServer>,
@@ -15,7 +17,7 @@ pub struct StorageProcess {
 
 impl StorageProcess {
     pub fn new(transport: Box<dyn Transport>) -> Self {
-        let ipc = Arc::new(IpcServer::new(ProcessType::Storage, transport));
+        let ipc = Arc::new(IpcServer::new(IPC_SENDER_STORAGE, transport));
 
         Self {
             jobs: HashMap::new(),
@@ -43,7 +45,7 @@ impl StorageProcess {
 
         while let Some(msg) = rx.recv().await {
             if let Some(response) = self.handle_message(msg.clone()).await {
-                let response_msg = Message::new(ProcessType::Storage, msg.from, response)
+                let response_msg = Message::new(IPC_SENDER_STORAGE, msg.from, response)
                     .reply_to(msg.id)
                     .to_owned();
 
@@ -71,6 +73,16 @@ impl StorageProcess {
                     .jobs
                     .values()
                     .filter(|j| query.status.as_ref().is_none_or(|s| &j.status == s))
+                    .cloned()
+                    .collect();
+                Some(MessagePayload::JobsResult(jobs))
+            }
+            MessagePayload::QueryScheduledJobs(sys_time) => {
+                let jobs: Vec<Job> = self
+                    .jobs
+                    .values()
+                    .filter(|j| j.status == JobStatus::Scheduled)
+                    .filter(|j| j.scheduled_at <= sys_time)
                     .cloned()
                     .collect();
                 Some(MessagePayload::JobsResult(jobs))
