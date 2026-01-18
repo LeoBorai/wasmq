@@ -39,8 +39,6 @@ pub enum JobResult {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JobQuery {
     pub status: Option<JobStatus>,
-    pub limit: Option<usize>,
-    pub offset: Option<usize>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
