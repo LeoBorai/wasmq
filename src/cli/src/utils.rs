@@ -1,0 +1,31 @@
+use tokio::signal;
+use tracing::debug;
+
+/// Waits for a shutdown signal (Ctrl+C or termination signal on Unix).
+pub async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {
+            debug!("Received Ctrl+C Signal");
+        },
+        _ = terminate => {
+            debug!("Received termination signal");
+        },
+    }
+}

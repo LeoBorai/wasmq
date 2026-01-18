@@ -14,7 +14,7 @@ pub enum TaskCmd {
 impl TaskCmd {
     pub async fn exec(&self) -> Result<()> {
         match &self {
-            TaskCmd::Run(run_cmd) => run_cmd.exec().await,
+            TaskCmd::Run(cmd) => cmd.exec().await,
         }
     }
 }

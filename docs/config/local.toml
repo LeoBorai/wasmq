@@ -1,0 +1,16 @@
+[transport]
+type = "UnixSocket"
+base_path = "/tmp/mate_sys"
+
+[hub]
+api_addr = "127.0.0.1:8080"
+
+[storage]
+backend = "Memory"
+
+[scheduler]
+check_interval_secs = 1
+
+[executors]
+count = 2
+max_concurrent_jobs = 5

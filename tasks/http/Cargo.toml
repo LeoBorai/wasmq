@@ -13,4 +13,4 @@ serde_json = { workspace = true }
 wit-bindgen = { workspace = true }
 wstd = { workspace = true }
 
-mate_task = { workspace = true }
+mate-task = { workspace = true }
