@@ -6,10 +6,12 @@ use serde_json::Value;
 
 use self::runtime::wasmtime::WasmtimeRuntime;
 
+#[derive(Clone)]
 pub enum Runtime {
     Wasm(WasmtimeRuntime),
 }
 
+#[derive(Clone)]
 pub struct Executor {
     runtime: Runtime,
 }
@@ -27,9 +29,10 @@ impl Executor {
         }
     }
 
-    pub async fn run(self, module: Bytes, input: Bytes) -> Result<Value> {
-        match self.runtime {
+    pub async fn run(&self, module: Bytes, input: Bytes) -> Result<Value> {
+        match &self.runtime {
             Runtime::Wasm(runtime) => {
+                let runtime = runtime.clone();
                 tokio::spawn(async move { runtime.execute(module, input).await }).await?
             }
         }
