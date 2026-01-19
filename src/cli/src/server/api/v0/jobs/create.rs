@@ -13,6 +13,7 @@ use crate::server::state::SharedServices;
 #[derive(Debug, Deserialize)]
 pub struct CreateJobRequest {
     name: String,
+    task: String,
     payload: serde_json::Value,
 }
 
@@ -23,6 +24,13 @@ pub async fn handler(
     if job_data.name.is_empty() || job_data.name.contains(' ') {
         return Err(ApiError {
             message: String::from("Job name cannot contain spaces and cannot be empty"),
+            status: StatusCode::BAD_REQUEST,
+        });
+    }
+
+    if job_data.task.is_empty() || job_data.task.contains(' ') {
+        return Err(ApiError {
+            message: String::from("Job task cannot contain spaces and cannot be empty"),
             status: StatusCode::BAD_REQUEST,
         });
     }
@@ -38,7 +46,7 @@ pub async fn handler(
         result: None,
         retry_count: 0,
         max_retries: 3,
-        task: String::from("http"),
+        task: job_data.task,
     };
     let msg = Message::new(
         ProcessType::Hub,

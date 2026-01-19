@@ -4,8 +4,8 @@ use std::sync::Arc;
 use anyhow::{Context, Result, bail};
 use bytes::Bytes;
 use mate_config::Config;
+use tokio::fs;
 use tokio::sync::RwLock;
-use tokio::{fs, task};
 use tracing::{error, info};
 
 use mate_executor::Executor;
@@ -48,6 +48,7 @@ impl ExecutorProcess {
     async fn get_or_load_module(&self, task_name: &str) -> Result<Bytes> {
         {
             let modules = self.modules.read().await;
+
             if let Some(module) = modules.get(task_name) {
                 return Ok(module.clone());
             }
@@ -64,14 +65,16 @@ impl ExecutorProcess {
             .await
             .context(format!("Failed to read WASM file: {:?}", path))?;
         let wasm: Bytes = wasm.into();
-
-        {
+        let cached_wasm = {
             let mut modules = self.modules.write().await;
-            modules.insert(task_name.to_string(), wasm.clone());
-        }
-
+            modules
+                .entry(task_name.to_string())
+                .or_insert_with(|| wasm.clone())
+                .clone()
+        };
         info!(task_name, "WASM module loaded and cached");
-        Ok(wasm)
+
+        Ok(cached_wasm)
     }
 
     pub async fn execute(&self, job: Job) -> Result<()> {
@@ -88,7 +91,7 @@ impl ExecutorProcess {
 
                 if let Err(err) = ipc
                     .request(Message::new(
-                        self.process_type(),
+                        process_type,
                         ProcessType::Storage,
                         MessagePayload::JobCompleted(
                             job_id,
@@ -104,28 +107,21 @@ impl ExecutorProcess {
             }
         };
 
+        let payload_bytes: Bytes = serde_json::to_vec(&payload)?.into();
+
         tokio::spawn(async move {
             info!(%job_id, %task_name, "Executing Job");
 
-            let result = task::spawn(async move {
-                executor
-                    .run(task, payload.to_string().as_bytes().to_vec().into())
-                    .await
-            })
-            .await;
+            let result = executor.run(task, payload_bytes).await;
 
             let job_result = match result {
-                Ok(Ok(output)) => {
+                Ok(output) => {
                     info!(%job_id, ?output, "Job completed successfully");
                     JobResult::Success(output)
                 }
-                Ok(Err(err)) => {
+                Err(err) => {
                     error!(?err, %job_id, "Job execution failed");
                     JobResult::Failure(err.to_string())
-                }
-                Err(err) => {
-                    error!(?err, %job_id, "Task panicked");
-                    JobResult::Failure(format!("Task panicked: {}", err))
                 }
             };
 
