@@ -1,0 +1,16 @@
+[package]
+name = "{{MATE_TASK_NAME}}"
+authors = ["{{MATE_TASK_AUTHOR}}"]
+version = "{{MATE_TASK_VERSION}}"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+wit-bindgen = "0.51"
+
+mate-task = "0.0.0-pre.b8589f5"

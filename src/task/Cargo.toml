@@ -10,7 +10,6 @@ license.workspace = true
 repository.workspace = true
 readme.workspace = true
 
-
 [lib]
 name = "mate_task"
 path = "src/lib.rs"

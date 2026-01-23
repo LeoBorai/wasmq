@@ -21,8 +21,10 @@ async-trait = "0.1"
 axum = "0.8"
 bytes = "1.11"
 clap = "4.5"
+include_dir = "0.7"
 log = "0.4"
 proc-macro2 = "1.0"
+semver = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 syn = { version = "2.0", features = ["full", "extra-traits"] }

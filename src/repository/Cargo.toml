@@ -11,3 +11,5 @@ name = "mate_repository"
 path = "src/lib.rs"
 
 [dependencies]
+anyhow = { workspace = true }
+semver = { workspace = true }
