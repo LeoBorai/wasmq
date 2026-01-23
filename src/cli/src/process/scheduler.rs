@@ -4,7 +4,7 @@ use std::time::{Duration, SystemTime};
 use anyhow::{Result, bail};
 use tokio::sync::Mutex;
 use tokio::time::interval;
-use tracing::{error, info, warn};
+use tracing::{error, warn};
 use uuid::Uuid;
 
 use mate_ipc::channel::IpcServer;
@@ -62,15 +62,18 @@ impl SchedulerProcess {
             reply_to: None,
         };
 
-        let response = self.ipc.request(query_msg).await?;
-
-        info!(?response, "Got response in scheduler");
-
-        if let MessagePayload::JobsResult(jobs) = response.payload {
-            for job in jobs {
-                if let Err(err) = self.dispatch_job(job).await {
-                    warn!(?err, "Failed to dispatch job");
+        match self.ipc.request(query_msg).await {
+            Ok(response) => {
+                if let MessagePayload::JobsResult(jobs) = response.payload {
+                    for job in jobs {
+                        if let Err(err) = self.dispatch_job(job).await {
+                            warn!(?err, "Failed to dispatch job");
+                        }
+                    }
                 }
+            }
+            Err(err) => {
+                error!(?err, "Failed to query scheduled jobs from Storage");
             }
         }
 
