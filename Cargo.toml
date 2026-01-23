@@ -39,4 +39,5 @@ mate-config = { path = "./src/config" }
 mate-executor = { path = "./src/executor" }
 mate-ipc = { path = "./src/ipc" }
 mate = { path = "./src/mate" }
+mate-repository = { path = "./src/repository" }
 mate-task = { path = "./src/task" }

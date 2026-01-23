@@ -1,0 +1,13 @@
+[package]
+name = "mate-repository"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[lib]
+name = "mate_repository"
+path = "src/lib.rs"
+
+[dependencies]

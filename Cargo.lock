@@ -1435,6 +1435,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "mate-repository"
+version = "0.0.0-pre.b8589f5"
+
+[[package]]
 name = "mate-task"
 version = "0.0.0-pre.b8589f5"
 dependencies = [
