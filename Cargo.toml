@@ -10,6 +10,10 @@ edition = "2024"
 categories = ["web-programming"]
 description = "🦀🧡🧉"
 documentation = "https://docs.rs/mate"
+keywords = ["job", "queue", "scheduler", "wasm"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/LeoBorai/mate"
+readme = "./README.md"
 
 [workspace.dependencies]
 anyhow = "1.0"

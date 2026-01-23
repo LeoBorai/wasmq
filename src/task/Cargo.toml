@@ -1,10 +1,15 @@
 [package]
 name = "mate-task"
+description = "Macros to define tasks for Mate"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
-description.workspace = true
 documentation.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+
 
 [lib]
 name = "mate_task"
