@@ -1560,7 +1560,7 @@ checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
 
 [[package]]
 name = "mate"
-version = "0.0.0-pre.b2273df"
+version = "0.0.0-pre.1295c3f"
 dependencies = [
  "anyhow",
  "reqwest",
@@ -1572,7 +1572,7 @@ dependencies = [
 
 [[package]]
 name = "mate-cli"
-version = "0.0.0-pre.b2273df"
+version = "0.0.0-pre.1295c3f"
 dependencies = [
  "anyhow",
  "axum",
@@ -1595,7 +1595,7 @@ dependencies = [
 
 [[package]]
 name = "mate-config"
-version = "0.0.0-pre.b2273df"
+version = "0.0.0-pre.1295c3f"
 dependencies = [
  "anyhow",
  "serde",
@@ -1604,7 +1604,7 @@ dependencies = [
 
 [[package]]
 name = "mate-executor"
-version = "0.0.0-pre.b2273df"
+version = "0.0.0-pre.1295c3f"
 dependencies = [
  "anyhow",
  "bytes",
@@ -1619,7 +1619,7 @@ dependencies = [
 
 [[package]]
 name = "mate-ipc"
-version = "0.0.0-pre.b2273df"
+version = "0.0.0-pre.1295c3f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1634,7 +1634,7 @@ dependencies = [
 
 [[package]]
 name = "mate-repository"
-version = "0.0.0-pre.b2273df"
+version = "0.0.0-pre.1295c3f"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1647,7 +1647,7 @@ dependencies = [
 
 [[package]]
 name = "mate-task"
-version = "0.0.0-pre.b2273df"
+version = "0.0.0-pre.1295c3f"
 dependencies = [
  "proc-macro2",
  "quote",
