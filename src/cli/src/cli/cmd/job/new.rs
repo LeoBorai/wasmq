@@ -23,14 +23,12 @@ impl JobNewOpt {
     pub async fn exec(&self) -> Result<()> {
         let client = Client::new("http://localhost:8080".to_string());
 
-        println!("{:?}", self.payload);
-
         match client
             .create_job(self.name.clone(), self.task.clone(), self.payload.clone())
             .await
         {
             Ok(job) => {
-                println!("Job created successfully: {:?}", job);
+                println!("Job created successfully. ID: {:?}", job.id);
             }
             Err(e) => {
                 println!("Failed to create job: {}", e);

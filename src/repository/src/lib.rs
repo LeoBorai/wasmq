@@ -29,4 +29,8 @@ impl TaskRepository {
     pub async fn find(&self, id: &TaskIdentifier) -> Result<Option<Bytes>> {
         self.backend.find(id).await
     }
+
+    pub async fn list(&self) -> Result<Vec<TaskIdentifier>> {
+        self.backend.list().await
+    }
 }
