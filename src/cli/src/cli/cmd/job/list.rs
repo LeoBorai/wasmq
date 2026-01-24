@@ -17,19 +17,6 @@ struct JobListItem {
     retries: String,
 }
 
-// pub id: Uuid,
-// pub name: String,
-// pub payload: Value,
-// pub status: JobStatus,
-// pub scheduled_at: SystemTime,
-// pub task: TaskIdentifier,
-// pub started_at: Option<SystemTime>,
-// pub completed_at: Option<SystemTime>,
-// pub errors: Vec<String>,
-// pub result: Option<JobResult>,
-// pub retry_count: u32,
-// pub max_retries: u32,
-
 #[derive(Debug, Parser)]
 pub struct JobListOpt {}
 
