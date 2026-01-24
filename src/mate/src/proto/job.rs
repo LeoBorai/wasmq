@@ -1,4 +1,4 @@
-use std::time::SystemTime;
+use std::{fmt::Display, time::SystemTime};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -34,10 +34,33 @@ pub enum JobStatus {
     Cancelled,
 }
 
+impl Display for JobStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let status_str = match self {
+            JobStatus::Pending => "Pending",
+            JobStatus::Scheduled => "Scheduled",
+            JobStatus::Running => "Running",
+            JobStatus::Completed => "Completed",
+            JobStatus::Failed => "Failed",
+            JobStatus::Cancelled => "Cancelled",
+        };
+        write!(f, "{}", status_str)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum JobResult {
     Success(Value),
     Failure(String),
+}
+
+impl Display for JobResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            JobResult::Success(_) => write!(f, "Success"),
+            JobResult::Failure(_) => write!(f, "Failure"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
