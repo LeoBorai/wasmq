@@ -5,6 +5,7 @@ use axum::http::StatusCode;
 use axum::{Extension, Json};
 use mate::proto::task::TaskIdentifier;
 use serde::Deserialize;
+use serde_json::Value;
 use uuid::Uuid;
 
 use mate::proto::job::{Job, JobStatus};
@@ -17,7 +18,7 @@ use crate::server::state::SharedServices;
 pub struct CreateJobRequest {
     name: String,
     task: String,
-    payload: serde_json::Value,
+    payload: Value,
 }
 
 pub async fn handler(
@@ -55,6 +56,7 @@ pub async fn handler(
         retry_count: 0,
         max_retries: 3,
         task,
+        errors: Vec::new(),
     };
     let msg = Message::new(
         ProcessType::Hub,

@@ -18,6 +18,7 @@ pub struct Job {
     pub task: TaskIdentifier,
     pub started_at: Option<SystemTime>,
     pub completed_at: Option<SystemTime>,
+    pub errors: Vec<String>,
     pub result: Option<JobResult>,
     pub retry_count: u32,
     pub max_retries: u32,
@@ -35,7 +36,7 @@ pub enum JobStatus {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum JobResult {
-    Success(serde_json::Value),
+    Success(Value),
     Failure(String),
 }
 
