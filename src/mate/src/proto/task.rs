@@ -1,9 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
-use anyhow::{Error, Result, bail};
+use anyhow::{Error, bail};
 use semver::Version;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct TaskIdentifier {
     pub namespace: String,
     pub name: String,

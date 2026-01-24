@@ -7,8 +7,9 @@ use tokio::time::interval;
 use tracing::{error, warn};
 use uuid::Uuid;
 
+use mate::proto::job::{Job, JobStatus};
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Job, JobStatus, Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
 const IPC_SENDER_SCHEDULER: ProcessType = ProcessType::Scheduler;

@@ -8,7 +8,9 @@ use bytes::Bytes;
 use tokio::fs::{File, create_dir_all, read, read_dir};
 use tokio::io::AsyncWriteExt;
 
-use crate::{backend::Backend, id::TaskIdentifier};
+use mate::proto::task::TaskIdentifier;
+
+use crate::backend::Backend;
 
 pub struct LocalBackend {
     dir: PathBuf,

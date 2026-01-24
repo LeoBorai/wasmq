@@ -3,14 +3,15 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result, bail};
 use bytes::Bytes;
-use mate_config::Config;
 use tokio::fs;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
+use mate::proto::job::{Job, JobResult};
+use mate_config::Config;
 use mate_executor::Executor;
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Job, JobResult, Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
 pub struct ExecutorProcess {
@@ -84,10 +85,10 @@ impl ExecutorProcess {
         let job_id = job.id;
         let payload = job.payload.clone();
         let process_type = self.process_type();
-        let task = match self.get_or_load_module(&task_name).await {
+        let task = match self.get_or_load_module(&task_name.to_string()).await {
             Ok(m) => m,
             Err(err) => {
-                error!(?err, task_name, "Failed to load WASM Task");
+                error!(?err, ?task_name, "Failed to load WASM Task");
 
                 if let Err(err) = ipc
                     .request(Message::new(

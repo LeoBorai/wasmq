@@ -14,5 +14,8 @@ path = "src/lib.rs"
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 bytes = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 semver = { workspace = true }
 tokio = { workspace = true, features = ["fs", "io-std", "io-util"] }
+
+mate = { workspace = true }

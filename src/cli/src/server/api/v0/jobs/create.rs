@@ -1,11 +1,14 @@
+use std::str::FromStr;
 use std::time::SystemTime;
 
 use axum::http::StatusCode;
 use axum::{Extension, Json};
+use mate::proto::task::TaskIdentifier;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use mate_ipc::protocol::{Job, JobStatus, Message, MessagePayload, ProcessType};
+use mate::proto::job::{Job, JobStatus};
+use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 
 use crate::server::api::v0::ApiError;
 use crate::server::state::SharedServices;
@@ -20,7 +23,12 @@ pub struct CreateJobRequest {
 pub async fn handler(
     Extension(services): Extension<SharedServices>,
     Json(job_data): Json<CreateJobRequest>,
-) -> Result<Json<Message>, ApiError> {
+) -> Result<Json<Job>, ApiError> {
+    let task = TaskIdentifier::from_str(&job_data.task).map_err(|_| ApiError {
+        message: String::from("Invalid task identifier format"),
+        status: StatusCode::BAD_REQUEST,
+    })?;
+
     if job_data.name.is_empty() || job_data.name.contains(' ') {
         return Err(ApiError {
             message: String::from("Job name cannot contain spaces and cannot be empty"),
@@ -46,7 +54,7 @@ pub async fn handler(
         result: None,
         retry_count: 0,
         max_retries: 3,
-        task: job_data.task,
+        task,
     };
     let msg = Message::new(
         ProcessType::Hub,
@@ -64,5 +72,15 @@ pub async fn handler(
             message: err,
         })?;
 
-    Ok(Json(message))
+    match message.payload {
+        MessagePayload::JobStored(Ok(job)) => Ok(Json(job)),
+        MessagePayload::JobStored(Err(message)) => Err(ApiError {
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            message,
+        }),
+        _ => Err(ApiError {
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            message: String::from("Unexpected response from storage service"),
+        }),
+    }
 }

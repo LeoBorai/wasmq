@@ -6,8 +6,9 @@ use anyhow::{Result, bail};
 use tracing::debug;
 use uuid::Uuid;
 
+use mate::proto::job::{Job, JobStatus};
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Job, JobStatus, Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
 const IPC_SENDER_STORAGE: ProcessType = ProcessType::Storage;

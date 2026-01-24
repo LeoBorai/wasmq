@@ -1,5 +1,6 @@
 pub mod executor;
 pub mod hub;
+pub mod job;
 pub mod scheduler;
 pub mod storage;
 pub mod task;
@@ -8,6 +9,7 @@ use anyhow::Result;
 use clap::Parser;
 
 use crate::cli::cmd::executor::ExecutorCmd;
+use crate::cli::cmd::job::JobCmd;
 use crate::cli::cmd::scheduler::SchedulerCmd;
 
 use self::hub::HubCmd;
@@ -22,6 +24,9 @@ pub enum Cmd {
     /// Hub management
     #[clap(subcommand)]
     Hub(HubCmd),
+    /// Job management
+    #[clap(subcommand)]
+    Job(JobCmd),
     /// Scheduler management
     #[clap(subcommand)]
     Scheduler(SchedulerCmd),
@@ -38,6 +43,7 @@ impl Cmd {
         match &self {
             Cmd::Executor(cmd) => cmd.exec().await,
             Cmd::Hub(cmd) => cmd.exec().await,
+            Cmd::Job(cmd) => cmd.exec().await,
             Cmd::Scheduler(cmd) => cmd.exec().await,
             Cmd::Storage(cmd) => cmd.exec().await,
             Cmd::Task(cmd) => cmd.exec().await,
