@@ -1,7 +1,7 @@
-use std::env::current_dir;
 use std::fs::create_dir_all;
 use std::io::Write;
 use std::path::PathBuf;
+use std::{env::current_dir, path::Path};
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
@@ -54,7 +54,7 @@ impl TaskNewOpt {
         Ok(())
     }
 
-    fn copy_file<'a>(entry: &File<'a>, target: &PathBuf) -> Result<()> {
+    fn copy_file<'a>(entry: &File<'a>, target: &Path) -> Result<()> {
         let target_path = target.join(entry.path());
         let mut file = std::fs::File::create_new(target_path)?;
         file.write_all(entry.contents())?;
