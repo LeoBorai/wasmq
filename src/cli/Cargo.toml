@@ -15,6 +15,7 @@ anyhow = { workspace = true }
 axum = { workspace = true }
 bytes = { workspace = true }
 clap = { workspace = true, features = ["env", "derive", "std"] }
+include_dir = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true}
 tokio = { workspace = true, features = ["macros", "process", "rt-multi-thread", "signal"] }
@@ -25,3 +26,4 @@ uuid = { workspace = true, features = ["v4"] }
 mate-config = { workspace = true }
 mate-executor = { workspace = true }
 mate-ipc = { workspace = true }
+mate-repository = { workspace = true }
