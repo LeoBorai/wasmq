@@ -43,11 +43,11 @@ impl TaskNewOpt {
                     create_dir_all(&dir_path)?;
                 }
 
-                Self::copy_dir(dir, &target)?;
+                Self::copy_dir(dir, target)?;
             }
 
             if let Some(file) = entry.as_file() {
-                Self::copy_file(file, &target)?;
+                Self::copy_file(file, target)?;
             }
         }
 

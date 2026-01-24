@@ -1,10 +1,11 @@
+use std::env::home_dir;
 use std::path::PathBuf;
-use std::{env::home_dir, str::FromStr};
+use std::str::FromStr;
 
 use anyhow::{Context, Result, bail};
 use async_trait::async_trait;
 use bytes::Bytes;
-use tokio::fs::{File, create_dir_all, read, read_dir, write};
+use tokio::fs::{File, create_dir_all, read, read_dir};
 use tokio::io::AsyncWriteExt;
 
 use crate::{backend::Backend, id::TaskIdentifier};
@@ -87,7 +88,7 @@ impl Backend for LocalBackend {
         {
             let namespace_path = namespace_entry.path();
             if namespace_path.is_dir() {
-                let Some(namespace) = namespace_path.file_name().and_then(|n| n.to_str()) else {
+                let Some(_namespace) = namespace_path.file_name().and_then(|n| n.to_str()) else {
                     bail!(
                         "Failed to retrieve namespace while reading through dir. {namespace_path:?}"
                     );
@@ -106,19 +107,15 @@ impl Backend for LocalBackend {
                 {
                     let task_path = task_entry.path();
 
-                    if let Some(file_name) = task_path.file_name().and_then(|n| n.to_str()) {
-                        if let Some((name_version, _)) = file_name.split_once(".wasm") {
-                            match TaskIdentifier::from_str(name_version) {
-                                Ok(id) => {
-                                    tasks.push(id);
-                                }
-                                Err(e) => {
-                                    bail!(
-                                        "Warning: Skipping invalid task file '{}': {}",
-                                        file_name,
-                                        e
-                                    );
-                                }
+                    if let Some(file_name) = task_path.file_name().and_then(|n| n.to_str())
+                        && let Some((name_version, _)) = file_name.split_once(".wasm")
+                    {
+                        match TaskIdentifier::from_str(name_version) {
+                            Ok(id) => {
+                                tasks.push(id);
+                            }
+                            Err(e) => {
+                                bail!("Warning: Skipping invalid task file '{}': {}", file_name, e);
                             }
                         }
                     }

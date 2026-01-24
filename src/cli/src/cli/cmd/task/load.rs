@@ -20,7 +20,10 @@ impl TaskLoadOpt {
         let wasm = read(&self.path).await?;
 
         repo.store(&self.id, wasm.into()).await?;
-        println!("Task \"{}\" has been loaded into local the repository.", self.id);
+        println!(
+            "Task \"{}\" has been loaded into local the repository.",
+            self.id
+        );
 
         Ok(())
     }

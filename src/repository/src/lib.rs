@@ -4,7 +4,10 @@ pub mod id;
 use anyhow::Result;
 use bytes::Bytes;
 
-use crate::{backend::{Backend, LocalBackend}, id::TaskIdentifier};
+use crate::{
+    backend::{Backend, LocalBackend},
+    id::TaskIdentifier,
+};
 
 pub struct TaskRepository {
     backend: Box<dyn Backend>,
@@ -22,6 +25,6 @@ impl TaskRepository {
     }
 
     pub async fn store(&self, id: &TaskIdentifier, data: Bytes) -> Result<()> {
-        self.backend.create(&id, data).await
+        self.backend.create(id, data).await
     }
 }

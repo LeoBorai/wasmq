@@ -1,12 +1,12 @@
-mod new;
 mod load;
+mod new;
 mod run;
 
 use anyhow::Result;
 use clap::Parser;
 
-use self::new::TaskNewOpt;
 use self::load::TaskLoadOpt;
+use self::new::TaskNewOpt;
 use self::run::TaskRunOpt;
 
 #[derive(Debug, Parser)]
