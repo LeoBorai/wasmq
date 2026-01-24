@@ -1,9 +1,11 @@
 use std::env::current_dir;
+use std::fs::create_dir_all;
+use std::io::Write;
+use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
-use include_dir::{Dir, include_dir};
-use tokio::fs::create_dir_all;
+use include_dir::{Dir, File, include_dir};
 
 use mate_repository::TaskIdentifier;
 
@@ -17,22 +19,45 @@ pub struct TaskNewOpt {
 impl TaskNewOpt {
     pub async fn exec(&self) -> Result<()> {
         let current_dir = current_dir().context("Failed to get current directory")?;
-        let task_dir = current_dir.join(&self.name.name);
+        let target_dir = current_dir.join(&self.name.name);
 
-        if task_dir.exists() {
-            bail!("Task directory '{}' already exists.", task_dir.display());
+        if target_dir.exists() {
+            bail!("Task directory '{}' already exists.", target_dir.display());
         }
 
-        create_dir_all(&task_dir)
-            .await
-            .with_context(|| format!("Failed to create task directory '{}'", task_dir.display()))?;
+        create_dir_all(&target_dir).with_context(|| {
+            format!("Failed to create task directory '{}'", target_dir.display())
+        })?;
 
-        for _ in ASSETS_TASK_RUST.entries() {
-            // Recursively replicate directory structure and files
-            // Should replace certain text with project-specific values
-            // MATE_TASK_NAME, MATE_TASK_AUTHOR, MATE_TASK_VERSION
+        Self::copy_dir(&ASSETS_TASK_RUST, &target_dir)?;
+
+        Ok(())
+    }
+
+    fn copy_dir<'a>(dir: &Dir<'a>, target: &PathBuf) -> Result<()> {
+        for entry in dir.entries() {
+            if let Some(dir) = entry.as_dir() {
+                let dir_path = target.join(dir.path());
+
+                if !dir_path.exists() {
+                    create_dir_all(&dir_path)?;
+                }
+
+                Self::copy_dir(dir, &target)?;
+            }
+
+            if let Some(file) = entry.as_file() {
+                Self::copy_file(file, &target)?;
+            }
         }
 
+        Ok(())
+    }
+
+    fn copy_file<'a>(entry: &File<'a>, target: &PathBuf) -> Result<()> {
+        let target_path = target.join(entry.path());
+        let mut file = std::fs::File::create_new(target_path)?;
+        file.write_all(entry.contents())?;
         Ok(())
     }
 }
