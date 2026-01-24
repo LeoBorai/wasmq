@@ -5,7 +5,7 @@ resolver = "3"
 
 [workspace.package]
 authors = ["Leo Borai <estebanborai@gmail.com>"]
-version = "0.0.0-pre.1bd573b"
+version = "0.0.0-pre.b2273df"
 edition = "2024"
 categories = ["web-programming"]
 description = "🦀🧡🧉"
