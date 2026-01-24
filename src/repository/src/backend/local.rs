@@ -90,7 +90,7 @@ impl Backend for LocalBackend {
         {
             let namespace_path = namespace_entry.path();
             if namespace_path.is_dir() {
-                let Some(_namespace) = namespace_path.file_name().and_then(|n| n.to_str()) else {
+                let Some(namespace) = namespace_path.file_name().and_then(|n| n.to_str()) else {
                     bail!(
                         "Failed to retrieve namespace while reading through dir. {namespace_path:?}"
                     );
@@ -112,7 +112,7 @@ impl Backend for LocalBackend {
                     if let Some(file_name) = task_path.file_name().and_then(|n| n.to_str())
                         && let Some((name_version, _)) = file_name.split_once(".wasm")
                     {
-                        match TaskIdentifier::from_str(name_version) {
+                        match TaskIdentifier::from_str(&format!("{namespace}/{}", name_version)) {
                             Ok(id) => {
                                 tasks.push(id);
                             }
