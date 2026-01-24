@@ -4,7 +4,8 @@ use axum::{Extension, Json};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use mate_ipc::protocol::{Job, JobQuery, JobStatus, Message, MessagePayload, ProcessType};
+use mate::proto::job::{Job, JobQuery, JobStatus};
+use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 
 use crate::server::api::v0::ApiError;
 use crate::server::state::SharedServices;

@@ -1,13 +1,11 @@
 pub mod backend;
-pub mod id;
 
 use anyhow::Result;
 use bytes::Bytes;
 
-use crate::{
-    backend::{Backend, LocalBackend},
-    id::TaskIdentifier,
-};
+use mate::proto::task::TaskIdentifier;
+
+use crate::backend::{Backend, LocalBackend};
 
 pub struct TaskRepository {
     backend: Box<dyn Backend>,

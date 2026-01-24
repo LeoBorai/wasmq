@@ -23,6 +23,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 uuid = { workspace = true, features = ["v4"] }
 
+mate = { workspace = true }
 mate-config = { workspace = true }
 mate-executor = { workspace = true }
 mate-ipc = { workspace = true }

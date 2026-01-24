@@ -9,3 +9,11 @@ documentation.workspace = true
 [lib]
 name = "mate"
 path = "src/lib.rs"
+
+[dependencies]
+anyhow = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+semver = { workspace = true }
+uuid = { workspace = true }

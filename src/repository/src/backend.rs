@@ -6,7 +6,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use bytes::Bytes;
 
-use crate::id::TaskIdentifier;
+use mate::proto::task::TaskIdentifier;
 
 #[async_trait]
 pub trait Backend {

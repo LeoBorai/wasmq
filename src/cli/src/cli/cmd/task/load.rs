@@ -2,9 +2,10 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::Parser;
-
-use mate_repository::{TaskRepository, id::TaskIdentifier};
 use tokio::fs::read;
+
+use mate::proto::task::TaskIdentifier;
+use mate_repository::TaskRepository;
 
 #[derive(Debug, Parser)]
 pub struct TaskLoadOpt {
