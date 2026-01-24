@@ -12,4 +12,7 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow = { workspace = true }
+async-trait = { workspace = true }
+bytes = { workspace = true }
 semver = { workspace = true }
+tokio = { workspace = true, features = ["fs", "io-std", "io-util"] }

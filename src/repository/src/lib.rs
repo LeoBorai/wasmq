@@ -1,59 +1,27 @@
-use std::str::FromStr;
+pub mod backend;
+pub mod id;
 
-use anyhow::{Error, Result, bail};
-use semver::Version;
+use anyhow::Result;
+use bytes::Bytes;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct TaskIdentifier {
-    pub namespace: String,
-    pub name: String,
-    pub version: Version,
+use crate::{backend::{Backend, LocalBackend}, id::TaskIdentifier};
+
+pub struct TaskRepository {
+    backend: Box<dyn Backend>,
 }
 
-impl TaskIdentifier {
-    pub fn new(namespace: String, name: String) -> Self {
-        let version = Version::new(0, 1, 0);
-
-        Self {
-            namespace,
-            name,
-            version,
-        }
+impl TaskRepository {
+    pub fn new(backend: Box<dyn Backend>) -> Self {
+        Self { backend }
     }
-}
 
-impl FromStr for TaskIdentifier {
-    type Err = Error;
+    pub async fn local() -> Result<Self> {
+        let local = LocalBackend::new().await?;
+        let backend = Box::new(local);
+        Ok(Self { backend })
+    }
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts: Vec<&str> = s.split("/").collect();
-
-        if parts.len() == 2 {
-            let namespace = parts[0].to_string();
-            let name = parts[1].to_string();
-
-            if namespace.is_empty() || name.is_empty() {
-                bail!("Invalid task identifier format. Namespace and name cannot be empty.");
-            }
-
-            let name_parts: Vec<&str> = s.split("@").collect();
-
-            if name_parts.len() == 2 {
-                let name = name_parts[0].to_string();
-                let version = Version::parse(name_parts[1]);
-
-                if let Ok(version) = version {
-                    return Ok(TaskIdentifier {
-                        namespace,
-                        name,
-                        version,
-                    });
-                } else {
-                    bail!("Invalid version format: {}", name_parts[1]);
-                }
-            }
-        }
-
-        bail!("Invalid Task Identifier. Expected format: <namespace>/<name>@<version>");
+    pub async fn store(&self, id: &TaskIdentifier, data: Bytes) -> Result<()> {
+        self.backend.create(&id, data).await
     }
 }
