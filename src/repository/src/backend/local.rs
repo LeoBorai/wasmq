@@ -61,7 +61,7 @@ impl Backend for LocalBackend {
         Ok(())
     }
 
-    async fn retrieve(&self, id: &TaskIdentifier) -> Result<Option<Bytes>> {
+    async fn find(&self, id: &TaskIdentifier) -> Result<Option<Bytes>> {
         let file_path = self
             .dir
             .join(&id.namespace)

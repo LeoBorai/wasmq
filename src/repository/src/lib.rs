@@ -25,4 +25,8 @@ impl TaskRepository {
     pub async fn store(&self, id: &TaskIdentifier, data: Bytes) -> Result<()> {
         self.backend.create(id, data).await
     }
+
+    pub async fn find(&self, id: &TaskIdentifier) -> Result<Option<Bytes>> {
+        self.backend.find(id).await
+    }
 }

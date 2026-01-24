@@ -6,7 +6,7 @@ use anyhow::{Result, bail};
 use tracing::debug;
 use uuid::Uuid;
 
-use mate::proto::job::{Job, JobStatus};
+use mate::proto::job::{Job, JobResult, JobStatus};
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
@@ -71,8 +71,23 @@ impl StorageProcess {
 
                 if let Some(job) = self.jobs.get_mut(&id) {
                     job.completed_at = Some(SystemTime::now());
+
+                    match &result {
+                        JobResult::Success(_) => {
+                            job.status = JobStatus::Completed;
+                        }
+                        JobResult::Failure(err) => {
+                            if job.retry_count < job.max_retries {
+                                job.status = JobStatus::Scheduled;
+                                job.retry_count += 1;
+                                job.errors.push(err.to_string());
+                            } else {
+                                job.status = JobStatus::Failed;
+                            }
+                        }
+                    }
+
                     job.result = Some(result);
-                    job.status = JobStatus::Completed;
 
                     return Some(MessagePayload::JobStored(Ok(job.clone())));
                 }

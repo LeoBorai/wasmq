@@ -3,37 +3,38 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result, bail};
 use bytes::Bytes;
-use tokio::fs;
 use tokio::sync::RwLock;
 use tracing::{error, info};
 
 use mate::proto::job::{Job, JobResult};
-use mate_config::Config;
+use mate::proto::task::TaskIdentifier;
 use mate_executor::Executor;
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
+use mate_repository::TaskRepository;
 
 pub struct ExecutorProcess {
     id: usize,
     ipc: Arc<IpcServer>,
     executor: Arc<Executor>,
-    modules: Arc<RwLock<HashMap<String, Bytes>>>,
-    config: Config,
+    repository: TaskRepository,
+    cache: Arc<RwLock<HashMap<TaskIdentifier, Bytes>>>,
 }
 
 impl ExecutorProcess {
-    pub fn new(transport: Box<dyn Transport>, config: Config, id: usize) -> Result<Self> {
-        let modules = Arc::new(RwLock::new(HashMap::new()));
+    pub async fn new(transport: Box<dyn Transport>, id: usize) -> Result<Self> {
+        let cache = Arc::new(RwLock::new(HashMap::new()));
         let executor = Arc::new(Executor::new());
+        let repository = TaskRepository::local().await?;
         let ipc = Arc::new(IpcServer::new(ProcessType::Executor(id), transport));
 
         Ok(Self {
             id,
             ipc,
             executor,
-            modules,
-            config,
+            repository,
+            cache,
         })
     }
 
@@ -46,49 +47,50 @@ impl ExecutorProcess {
     }
 
     /// Load module on-demand with caching
-    async fn get_or_load_module(&self, task_name: &str) -> Result<Bytes> {
+    async fn get_or_load_module(&self, tid: &TaskIdentifier) -> Result<Bytes> {
         {
-            let modules = self.modules.read().await;
+            let cache = self.cache.read().await;
 
-            if let Some(module) = modules.get(task_name) {
+            if let Some(module) = cache.get(tid) {
                 return Ok(module.clone());
             }
         }
 
-        info!(task_name, "Loading WASM module");
+        info!(?tid, "Loading WASM module from repository");
 
-        let path = self
-            .config
-            .registry
-            .path
-            .join(format!("{}.wasm", task_name));
-        let wasm = fs::read(&path)
+        let task_bytes = self
+            .repository
+            .find(tid)
             .await
-            .context(format!("Failed to read WASM file: {:?}", path))?;
-        let wasm: Bytes = wasm.into();
-        let cached_wasm = {
-            let mut modules = self.modules.write().await;
-            modules
-                .entry(task_name.to_string())
-                .or_insert_with(|| wasm.clone())
-                .clone()
-        };
-        info!(task_name, "WASM module loaded and cached");
+            .context(format!("Failed to find Task in repository: {}", tid))?;
 
-        Ok(cached_wasm)
+        if let Some(wasm) = task_bytes {
+            let cached_wasm = {
+                let mut cache = self.cache.write().await;
+                cache
+                    .entry(tid.clone())
+                    .or_insert_with(|| wasm.clone())
+                    .clone()
+            };
+
+            info!(?tid, "WASM module loaded and cached");
+            return Ok(cached_wasm);
+        }
+
+        bail!("Task not found in repository: {}", tid);
     }
 
     pub async fn execute(&self, job: Job) -> Result<()> {
         let ipc = Arc::clone(&self.ipc);
         let executor = Arc::clone(&self.executor);
-        let task_name = job.task.clone();
+        let tid = job.task.clone();
         let job_id = job.id;
         let payload = job.payload.clone();
         let process_type = self.process_type();
-        let task = match self.get_or_load_module(&task_name.to_string()).await {
+        let task = match self.get_or_load_module(&tid).await {
             Ok(m) => m,
             Err(err) => {
-                error!(?err, ?task_name, "Failed to load WASM Task");
+                error!(?err, ?tid, "Failed to load WASM Task");
 
                 if let Err(err) = ipc
                     .request(Message::new(
@@ -111,10 +113,9 @@ impl ExecutorProcess {
         let payload_bytes: Bytes = serde_json::to_vec(&payload)?.into();
 
         tokio::spawn(async move {
-            info!(%job_id, %task_name, "Executing Job");
+            info!(%job_id, %tid, "Executing Job");
 
             let result = executor.run(task, payload_bytes).await;
-
             let job_result = match result {
                 Ok(output) => {
                     info!(%job_id, ?output, "Job completed successfully");

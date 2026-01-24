@@ -22,9 +22,9 @@ impl TaskRunOpt {
         serde_json::from_str::<Value>(&self.args)
             .context("Failed to deserialize string into JSON")?;
 
-        let source = self.source.clone();
         let args = self.args.clone();
         let args = args.as_bytes().to_vec();
+        let source = self.source.clone();
         let wasm = read(source)?;
         let executor = Executor::new();
         let output: Value = executor.run(wasm.into(), args.into()).await?;

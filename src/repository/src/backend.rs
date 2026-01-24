@@ -11,6 +11,6 @@ use mate::proto::task::TaskIdentifier;
 #[async_trait]
 pub trait Backend {
     async fn create(&self, id: &TaskIdentifier, bytes: Bytes) -> Result<()>;
-    async fn retrieve(&self, id: &TaskIdentifier) -> Result<Option<Bytes>>;
+    async fn find(&self, id: &TaskIdentifier) -> Result<Option<Bytes>>;
     async fn list(&self) -> Result<Vec<TaskIdentifier>>;
 }
