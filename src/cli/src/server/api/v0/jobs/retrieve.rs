@@ -25,6 +25,7 @@ pub async fn handler(
         to: ProcessType::Storage,
         payload: MessagePayload::QueryJobs(JobQuery {
             status: query.status,
+            time_range: None,
         }),
         reply_to: None,
     };
