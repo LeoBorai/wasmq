@@ -3,9 +3,10 @@ use std::time::SystemTime;
 use anyhow::Result;
 use clap::Parser;
 use tabled::Tabled;
-
-use mate::{Client, proto::job::JobStatus};
 use uuid::Uuid;
+
+use mate::Client;
+use mate::proto::job::JobStatus;
 
 use crate::cli::utils::display::print_table;
 
@@ -21,7 +22,14 @@ struct JobListItem {
 }
 
 #[derive(Debug, Parser)]
-pub struct JobListOpt {}
+pub struct JobListOpt {
+    /// List all Jobs
+    #[clap(long, short)]
+    all: bool,
+    /// Filter by Job Status
+    #[clap(long)]
+    status: Option<JobStatus>,
+}
 
 impl JobListOpt {
     pub async fn exec(&self) -> Result<()> {
@@ -31,6 +39,17 @@ impl JobListOpt {
             Ok(jobs) => {
                 let data = jobs
                     .into_iter()
+                    .filter(|job| {
+                        if self.all {
+                            return true;
+                        }
+
+                        if let Some(filter_status) = &self.status {
+                            return &job.status == filter_status;
+                        }
+
+                        job.status != JobStatus::Completed
+                    })
                     .map(|job| {
                         let tte_duration = job
                             .scheduled_at

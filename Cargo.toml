@@ -51,4 +51,5 @@ mate-ipc = { path = "./src/ipc" }
 mate = { path = "./src/mate" }
 mate-repository = { path = "./src/repository" }
 mate-scheduler = { path = "./src/scheduler" }
+mate-storage = { path = "./src/storage" }
 mate-task = { path = "./src/task" }

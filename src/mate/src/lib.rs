@@ -26,6 +26,7 @@ use anyhow::{Result, bail};
 use reqwest::Client as HttpClient;
 use serde::Serialize;
 use serde_json::Value;
+use uuid::Uuid;
 
 use crate::proto::job::Job;
 use crate::proto::task::TaskIdentifier;
@@ -89,6 +90,28 @@ impl Client {
             let jobs = response.json::<Vec<Job>>().await?;
             return Ok(jobs);
         }
+        let status = response.status();
+        let error_text = response.text().await?;
+
+        bail!("Request failed with status {}: {}", status, error_text)
+    }
+
+    pub async fn find_job_by_id(&self, id: Uuid) -> Result<Option<Job>> {
+        let request = self
+            .client
+            .get(format!("{}/api/v0/jobs?id={}", self.base_url, id));
+        let response = request.send().await?;
+
+        if response.status().is_success() {
+            let jobs = response.json::<Vec<Job>>().await?;
+
+            if let Some(job) = jobs.into_iter().find(|job| job.id == id) {
+                return Ok(Some(job));
+            }
+
+            return Ok(None);
+        }
+
         let status = response.status();
         let error_text = response.text().await?;
 

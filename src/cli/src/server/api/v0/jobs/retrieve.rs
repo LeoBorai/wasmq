@@ -12,6 +12,7 @@ use crate::server::state::SharedServices;
 
 #[derive(Deserialize)]
 pub struct RetrieveJobsQuery {
+    id: Option<Uuid>,
     status: Option<JobStatus>,
 }
 
@@ -41,7 +42,14 @@ pub async fn handler(
         })?;
 
     match response.payload {
-        MessagePayload::JobsResult(jobs) => Ok(Json(jobs)),
+        MessagePayload::JobsResult(jobs) => {
+            if let Some(id) = query.id {
+                let jobs: Vec<Job> = jobs.into_iter().filter(|job| job.id == id).collect();
+                return Ok(Json(jobs));
+            }
+
+            Ok(Json(jobs))
+        }
         _ => Err(ApiError {
             message: "Unexpected response".into(),
             status: StatusCode::INTERNAL_SERVER_ERROR,

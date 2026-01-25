@@ -1612,6 +1612,7 @@ dependencies = [
  "mate-ipc",
  "mate-repository",
  "mate-scheduler",
+ "mate-storage",
  "serde",
  "serde_json",
  "tabled",
@@ -1676,6 +1677,18 @@ dependencies = [
 [[package]]
 name = "mate-scheduler"
 version = "0.0.0-pre.d2a29f6"
+dependencies = [
+ "anyhow",
+ "mate",
+ "mate-ipc",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "mate-storage"
+version = "0.0.0-pre.1295c3f"
 dependencies = [
  "anyhow",
  "mate",

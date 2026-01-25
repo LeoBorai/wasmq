@@ -32,3 +32,4 @@ mate-executor = { workspace = true }
 mate-ipc = { workspace = true }
 mate-repository = { workspace = true }
 mate-scheduler = { workspace = true }
+mate-storage = { workspace = true }
