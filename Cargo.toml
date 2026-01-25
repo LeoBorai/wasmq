@@ -1,5 +1,5 @@
 [workspace]
-members = ["./src/*", "./tasks/*"]
+members = ["./src/*", "./task/*"]
 default-members = ["src/cli"]
 resolver = "3"
 
