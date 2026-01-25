@@ -1,7 +1,8 @@
-use std::cmp::Ordering;
 use std::fmt::Display;
 use std::time::SystemTime;
+use std::{cmp::Ordering, str::FromStr};
 
+use anyhow::{Error, bail};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -40,6 +41,7 @@ impl Ord for Job {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum JobStatus {
+    Claimed,
     Pending,
     Scheduled,
     Running,
@@ -51,6 +53,7 @@ pub enum JobStatus {
 impl Display for JobStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status_str = match self {
+            JobStatus::Claimed => "Claimed",
             JobStatus::Pending => "Pending",
             JobStatus::Scheduled => "Scheduled",
             JobStatus::Running => "Running",
@@ -59,6 +62,26 @@ impl Display for JobStatus {
             JobStatus::Cancelled => "Cancelled",
         };
         write!(f, "{}", status_str)
+    }
+}
+
+impl FromStr for JobStatus {
+    type Err = Error;
+
+    fn from_str(input: &str) -> Result<JobStatus, Self::Err> {
+        match input.to_ascii_lowercase().as_str() {
+            "claimed" => Ok(JobStatus::Claimed),
+            "pending" => Ok(JobStatus::Pending),
+            "scheduled" => Ok(JobStatus::Scheduled),
+            "running" => Ok(JobStatus::Running),
+            "completed" => Ok(JobStatus::Completed),
+            "failed" => Ok(JobStatus::Failed),
+            "cancelled" => Ok(JobStatus::Cancelled),
+            _ => bail!(
+                "The value {} doesn't correspond to a valid JobStatus",
+                input
+            ),
+        }
     }
 }
 

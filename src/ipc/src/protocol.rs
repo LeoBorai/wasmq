@@ -20,7 +20,7 @@ pub enum MessagePayload {
     JobUpdated(Result<(), String>),
 
     // Scheduler -> Storage
-    QueryScheduledJobs(SystemTime),
+    ClaimJobs((SystemTime, SystemTime)),
 
     // Scheduler -> Executor
     ExecuteJob(Job),

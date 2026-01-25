@@ -8,7 +8,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender, unbounded_channel};
 use tokio::time::{interval, sleep};
 use tracing::{error, info, warn};
 
-use mate::proto::job::{Job, JobQuery, JobStatus};
+use mate::proto::job::{Job, JobStatus};
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
@@ -129,12 +129,9 @@ impl Scheduler {
         let now = SystemTime::now();
         let future = now + LOOKAHEAD_WINDOW;
         let request = Message::new(
-            ProcessType::Scheduler,
+            IPC_SENDER_SCHEDULER,
             ProcessType::Storage,
-            MessagePayload::QueryJobs(JobQuery {
-                status: Some(JobStatus::Scheduled),
-                time_range: Some((now, future)),
-            }),
+            MessagePayload::ClaimJobs((now, future)),
         );
 
         match self.ipc.request(request).await {
@@ -143,7 +140,7 @@ impl Scheduler {
                     let mut queue = self.queue.lock().await;
 
                     // FIXME: Instead of replace all, we could merge intelligently
-                    queue.clear();
+                    // queue.clear();
 
                     for job in jobs {
                         queue.push(job);
