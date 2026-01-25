@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 
 use axum::http::StatusCode;
 use axum::{Extension, Json};
@@ -49,7 +49,7 @@ pub async fn handler(
         name: job_data.name,
         payload: job_data.payload,
         status: JobStatus::Scheduled,
-        scheduled_at: SystemTime::now(),
+        scheduled_at: SystemTime::now() + Duration::from_secs(5),
         started_at: None,
         completed_at: None,
         result: None,

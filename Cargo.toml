@@ -20,7 +20,9 @@ anyhow = "1.0"
 async-trait = "0.1"
 axum = "0.8"
 bytes = "1.11"
+chrono = "0.4"
 clap = "4.5"
+humantime = "2.3"
 include_dir = "0.7"
 log = "0.4"
 proc-macro2 = "1.0"
@@ -48,4 +50,5 @@ mate-executor = { path = "./src/executor" }
 mate-ipc = { path = "./src/ipc" }
 mate = { path = "./src/mate" }
 mate-repository = { path = "./src/repository" }
+mate-scheduler = { path = "./src/scheduler" }
 mate-task = { path = "./src/task" }

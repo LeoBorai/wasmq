@@ -1,4 +1,6 @@
-use std::{fmt::Display, time::SystemTime};
+use std::cmp::Ordering;
+use std::fmt::Display;
+use std::time::SystemTime;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -8,7 +10,7 @@ use crate::proto::task::TaskIdentifier;
 
 pub type ExecutorId = usize;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Job {
     pub id: Uuid,
     pub name: String,
@@ -24,7 +26,19 @@ pub struct Job {
     pub max_retries: u32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+impl PartialOrd for Job {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Job {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.scheduled_at.cmp(&self.scheduled_at) // Earlier first
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum JobStatus {
     Pending,
     Scheduled,
@@ -48,7 +62,7 @@ impl Display for JobStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum JobResult {
     Success(Value),
     Failure(String),
@@ -66,4 +80,5 @@ impl Display for JobResult {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JobQuery {
     pub status: Option<JobStatus>,
+    pub time_range: Option<(SystemTime, SystemTime)>,
 }

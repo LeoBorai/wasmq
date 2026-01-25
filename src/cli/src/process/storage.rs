@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 
 use anyhow::{Result, bail};
-use tracing::debug;
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use mate::proto::job::{Job, JobResult, JobStatus};
@@ -99,15 +99,35 @@ impl StorageProcess {
             MessagePayload::StoreJob(job) => {
                 let id = job.id;
                 self.jobs.insert(id, job.clone());
+
+                if let Err(err) = self
+                    .ipc
+                    .send(Message::new(
+                        ProcessType::Storage,
+                        ProcessType::Scheduler,
+                        MessagePayload::JobStored(Ok(job.clone())),
+                    ))
+                    .await
+                {
+                    error!(?err, "Failed to notify Scheduler about stored Job {id}");
+                }
+
                 Some(MessagePayload::JobStored(Ok(job)))
             }
             MessagePayload::QueryJobs(query) => {
                 let jobs: Vec<Job> = self
                     .jobs
                     .values()
+                    .filter(|j| {
+                        query.time_range.as_ref().is_none_or(|tr| {
+                            j.scheduled_at >= tr.0 - Duration::from_secs(1)
+                                && j.scheduled_at <= tr.1 + Duration::from_secs(1)
+                        })
+                    })
                     .filter(|j| query.status.as_ref().is_none_or(|s| &j.status == s))
                     .cloned()
                     .collect();
+                info!(jobs = jobs.len(), "Returning jobs from storage");
                 Some(MessagePayload::JobsResult(jobs))
             }
             MessagePayload::QueryScheduledJobs(sys_time) => {

@@ -84,6 +84,7 @@ impl ExecutorProcess {
         let ipc = Arc::clone(&self.ipc);
         let executor = Arc::clone(&self.executor);
         let tid = job.task.clone();
+        let exid = self.id;
         let job_id = job.id;
         let payload = job.payload.clone();
         let process_type = self.process_type();
@@ -113,12 +114,12 @@ impl ExecutorProcess {
         let payload_bytes: Bytes = serde_json::to_vec(&payload)?.into();
 
         tokio::spawn(async move {
-            info!(%job_id, %tid, "Executing Job");
+            info!(%job_id, %tid, %exid, "Executing Job");
 
             let result = executor.run(task, payload_bytes).await;
             let job_result = match result {
                 Ok(output) => {
-                    info!(%job_id, ?output, "Job completed successfully");
+                    info!(%job_id, "Job completed successfully");
                     JobResult::Success(output)
                 }
                 Err(err) => {
