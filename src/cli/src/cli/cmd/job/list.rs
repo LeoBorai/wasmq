@@ -17,7 +17,7 @@ struct JobListItem {
     task: String,
     result: String,
     retries: String,
-    ttr: String,
+    tte: String,
 }
 
 #[derive(Debug, Parser)]
@@ -32,16 +32,16 @@ impl JobListOpt {
                 let data = jobs
                     .into_iter()
                     .map(|job| {
-                        let ttr_duration = job
+                        let tte_duration = job
                             .scheduled_at
                             .duration_since(SystemTime::now())
                             .unwrap_or_default();
-                        let ttr_label = if job.status == JobStatus::Completed {
+                        let tte_label = if job.status == JobStatus::Completed {
                             "--".to_string()
-                        } else if ttr_duration.as_secs() == 0 {
+                        } else if tte_duration.as_secs() == 0 {
                             "Due".to_string()
                         } else {
-                            humantime::format_duration(ttr_duration)
+                            humantime::format_duration(tte_duration)
                                 .to_string()
                                 .split(' ')
                                 .next()
@@ -59,7 +59,7 @@ impl JobListOpt {
                                 None => "N/A".to_string(),
                             },
                             retries: format!("{}/{}", job.retry_count, job.max_retries),
-                            ttr: ttr_label,
+                            tte: tte_label,
                         }
                     })
                     .collect::<Vec<JobListItem>>();
