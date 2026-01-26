@@ -12,6 +12,14 @@
 
 ## Installation
 
+### Docker
+
+A Docker image is available as well. You can pull it from GitHub Container Registry.
+
+```bash
+docker pull ghcr.io/leoborai/mate:latest
+```
+
 ### GitHub Releases
 
 You can also download precompiled binaries from the [GitHub Releases](https://githeub.com/LeoBorai/mate/releases) page.
