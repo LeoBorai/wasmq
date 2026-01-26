@@ -208,6 +208,7 @@ jobs:
 
       - name: Setup Binaries
         run: |
+          cargo binstall -y --force cargo-tag
           cargo binstall -y --force cargo-zigbuild
           cargo binstall -y --force just
 
