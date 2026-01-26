@@ -4,4 +4,4 @@ COPY ./tmp/mate /opt/mate
 
 COPY ./tmp/local.toml /opt/local.toml
 
-ENTRYPOINT ["/opt/mate", "hub", "start", "--config", "./local.toml"]
+ENTRYPOINT ["/opt/mate", "hub", "start", "--config", "/opt/local.toml"]
