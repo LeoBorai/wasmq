@@ -33,7 +33,7 @@ pub struct JobListOpt {
 
 impl JobListOpt {
     pub async fn exec(&self) -> Result<()> {
-        let client = Client::new("http://localhost:8080".to_string());
+        let client = Client::new("http://localhost:6283".to_string());
 
         match client.retrieve_jobs().await {
             Ok(jobs) => {

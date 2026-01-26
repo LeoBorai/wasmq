@@ -20,6 +20,13 @@ A Docker image is available as well. You can pull it from GitHub Container Regis
 docker pull ghcr.io/leoborai/mate:latest
 ```
 
+```bash
+docker run -p 6283:6283 ghcr.io/leoborai/mate
+```
+
+Then use `mate` CLI as regularly. `mate` CLI will perform requests to the `mate`
+server running inside the Docker container.
+
 #### Troubleshooting
 
 ##### Error response from daemon "denied"

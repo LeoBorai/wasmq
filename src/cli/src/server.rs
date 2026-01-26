@@ -18,7 +18,7 @@ use crate::utils::shutdown_signal;
 pub async fn run_server(config: &Config, hub: Arc<Hub>) -> Result<()> {
     let services = Arc::new(Services::new(hub));
     let app = Router::new().merge(routes(services));
-    let listener = TcpListener::bind("0.0.0.0:8080").await?;
+    let listener = TcpListener::bind("0.0.0.0:6283").await?;
 
     info!(addr=?config.hub.api_addr, "Server listening");
 

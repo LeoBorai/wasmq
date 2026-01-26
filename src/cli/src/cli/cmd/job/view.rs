@@ -12,7 +12,7 @@ pub struct JobViewOpt {
 
 impl JobViewOpt {
     pub async fn exec(&self) -> Result<()> {
-        let client = Client::new("http://localhost:8080".to_string());
+        let client = Client::new("http://localhost:6283".to_string());
 
         match client.find_job_by_id(self.id).await {
             Ok(Some(job)) => {
