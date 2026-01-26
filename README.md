@@ -20,6 +20,24 @@ A Docker image is available as well. You can pull it from GitHub Container Regis
 docker pull ghcr.io/leoborai/mate:latest
 ```
 
+#### Troubleshooting
+
+##### Error response from daemon "denied"
+
+If you are getting:
+
+```bash
+docker pull ghcr.io/leoborai/mate:latest
+Error response from daemon: Head "https://ghcr.io/v2/leoborai/mate/manifests/latest": denied: denied
+```
+
+This is likely to be related to GHCR Credentials in your environment.
+You can fix this by logging out usinc the following command:
+
+```bash
+docker logout ghcr.io
+```
+
 ### GitHub Releases
 
 You can also download precompiled binaries from the [GitHub Releases](https://githeub.com/LeoBorai/mate/releases) page.
