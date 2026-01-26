@@ -170,3 +170,63 @@ jobs:
               done
             fi
           done
+
+  docker:
+    name: Publish Docker Image
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Git Fetch Unshallow
+        run: git fetch --prune --unshallow
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-musl
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Rust Target
+        run: rustup target add x86_64-unknown-linux-musl
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.12.0
+
+      - name: Setup Cargo Binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Setup Binaries
+        run: |
+          cargo binstall -y --force cargo-zigbuild
+          cargo binstall -y --force just
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            pkg-config \
+            libssl-dev
+
+      - name: Build Image
+        run: just docker-build-image
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Image to GitHub Container Registry
+        run: just docker-publish-image
