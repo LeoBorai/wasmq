@@ -1,6 +1,5 @@
 set positional-arguments
 
-latest_tag := `cargo tag current`
 target_release := "x86_64-unknown-linux-musl"
 
 default:
@@ -23,19 +22,15 @@ docker-build-image: docker-build
     cp ./docs/config/local.toml ./docker/tmp/local.toml
     cp ./target/{{target_release}}/release/mate ./docker/tmp/mate
     chmod +x ./docker/tmp/mate
-    docker build -t "mate:{{latest_tag}}" ./docker
+    docker build -t "mate:$(cargo tag current)" ./docker
 
 # Publishes the Docker image to the GitHub Container Registry
 docker-publish-image:
-    docker tag mate:{{latest_tag}} ghcr.io/leoborai/mate:{{latest_tag}}
-    docker tag mate:{{latest_tag}} ghcr.io/leoborai/mate:latest
-    docker push ghcr.io/leoborai/mate:{{latest_tag}}
+    docker tag mate:$(cargo tag current) ghcr.io/leoborai/mate:$(cargo tag current)
+    docker tag mate:$(cargo tag current) ghcr.io/leoborai/mate:latest
+    docker push ghcr.io/leoborai/mate:$(cargo tag current)
     docker push ghcr.io/leoborai/mate:latest
 
 # Runs the Docker image locally
 docker-run-image: docker-build-image
-    docker run mate:{{latest_tag}}
-
-# Echo latest tag
-latest-tag:
-    echo {{latest_tag}}
+    docker run mate:$(cargo tag current)
