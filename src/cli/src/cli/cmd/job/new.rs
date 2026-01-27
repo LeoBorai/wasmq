@@ -2,7 +2,8 @@ use anyhow::Result;
 use clap::Parser;
 use serde_json::Value;
 
-use mate::{Client, proto::task::TaskIdentifier};
+use mate::client::Client;
+use mate::proto::task::TaskIdentifier;
 
 use crate::cli::utils::io::parse_json;
 
@@ -21,10 +22,13 @@ pub struct JobNewOpt {
 
 impl JobNewOpt {
     pub async fn exec(&self) -> Result<()> {
-        let client = Client::new("http://localhost:6283".to_string());
+        let client = Client::new("http://localhost:6283");
 
         match client
-            .create_job(self.name.clone(), self.task.clone(), self.payload.clone())
+            .api
+            .v0
+            .jobs
+            .create(self.name.clone(), self.task.clone(), self.payload.clone())
             .await
         {
             Ok(job) => {
