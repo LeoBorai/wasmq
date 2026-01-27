@@ -1,4 +1,5 @@
 pub mod jobs;
+pub mod tasks;
 
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -6,7 +7,9 @@ use axum::{Json, Router};
 use serde::{Deserialize, Serialize};
 
 pub fn routes() -> Router {
-    Router::new().nest("/jobs", jobs::routes())
+    Router::new()
+        .nest("/jobs", jobs::routes())
+        .nest("/tasks", tasks::routes())
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

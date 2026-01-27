@@ -3,6 +3,7 @@ use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Result;
 use clap::Parser;
+use mate_repository::TaskRepository;
 use tracing::error;
 
 use crate::process::hub::Hub;
@@ -22,11 +23,12 @@ impl HubStartOpt {
         let mut hub = Hub::new(self.config.clone()).await?;
         let child_processes = hub.spawn_processes().await?;
         let hub = Arc::new(hub);
+        let repo = Arc::new(TaskRepository::local().await?);
 
         hub.wait_for_components().await?;
 
         tokio::select! {
-            Err(err) = run_server(hub.config(), Arc::clone(&hub)) => {
+            Err(err) = run_server(hub.config(), Arc::clone(&hub), Arc::clone(&repo)) => {
                 error!("Server returned an error. {:#?}", err);
             },
             _ = shutdown_signal() => {

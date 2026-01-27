@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use tabled::Tabled;
 
-use mate_repository::TaskRepository;
+use mate::client::Client;
 
 use crate::cli::utils::display::print_table;
 
@@ -18,18 +18,26 @@ pub struct TaskListOpt {}
 
 impl TaskListOpt {
     pub async fn exec(&self) -> Result<()> {
-        let repo = TaskRepository::local().await?;
-        let tasks = repo.list().await?;
-        let tasks: Vec<TaskListItem> = tasks
-            .into_iter()
-            .map(|task| TaskListItem {
-                namespace: task.namespace,
-                name: task.name,
-                version: task.version.to_string(),
-            })
-            .collect();
+        let client = Client::new("http://localhost:6283");
 
-        print_table(tasks);
+        match client.api.v0.tasks.retrieve().await {
+            Ok(tasks) => {
+                let data: Vec<TaskListItem> = tasks
+                    .into_iter()
+                    .map(|task| TaskListItem {
+                        namespace: task.namespace,
+                        name: task.name,
+                        version: task.version.to_string(),
+                    })
+                    .collect();
+
+                print_table(data);
+            }
+            Err(e) => {
+                println!("Failed to list tasks: {}", e);
+            }
+        }
+
         Ok(())
     }
 }
