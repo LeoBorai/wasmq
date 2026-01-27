@@ -5,7 +5,7 @@ use clap::Parser;
 use tabled::Tabled;
 use uuid::Uuid;
 
-use mate::Client;
+use mate::client::Client;
 use mate::proto::job::JobStatus;
 
 use crate::cli::utils::display::print_table;
@@ -33,9 +33,9 @@ pub struct JobListOpt {
 
 impl JobListOpt {
     pub async fn exec(&self) -> Result<()> {
-        let client = Client::new("http://localhost:6283".to_string());
+        let client = Client::new("http://localhost:6283");
 
-        match client.retrieve_jobs().await {
+        match client.api.v0.jobs.retrieve().await {
             Ok(jobs) => {
                 let data = jobs
                     .into_iter()
