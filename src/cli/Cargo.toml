@@ -12,7 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = { workspace = true }
-axum = { workspace = true }
+axum = { workspace = true, features = ["multipart"] }
 bytes = { workspace = true }
 chrono = { workspace = true }
 humantime = { workspace = true }

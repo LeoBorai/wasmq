@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use axum::Router;
+use mate_repository::TaskRepository;
 use tokio::net::TcpListener;
 use tracing::info;
 
@@ -15,8 +16,8 @@ use crate::server::api::routes;
 use crate::server::state::Services;
 use crate::utils::shutdown_signal;
 
-pub async fn run_server(config: &Config, hub: Arc<Hub>) -> Result<()> {
-    let services = Arc::new(Services::new(hub));
+pub async fn run_server(config: &Config, hub: Arc<Hub>, repo: Arc<TaskRepository>) -> Result<()> {
+    let services = Arc::new(Services::new(hub, repo));
     let app = Router::new().merge(routes(services));
     let listener = TcpListener::bind("0.0.0.0:6283").await?;
 

@@ -4,8 +4,7 @@ use anyhow::Result;
 use clap::Parser;
 use tokio::fs::read;
 
-use mate::proto::task::TaskIdentifier;
-use mate_repository::TaskRepository;
+use mate::{client::Client, proto::task::TaskIdentifier};
 
 #[derive(Debug, Parser)]
 pub struct TaskLoadOpt {
@@ -17,14 +16,20 @@ pub struct TaskLoadOpt {
 
 impl TaskLoadOpt {
     pub async fn exec(&self) -> Result<()> {
-        let repo = TaskRepository::local().await?;
         let wasm = read(&self.path).await?;
+        let client = Client::new("http://localhost:6283");
 
-        repo.store(&self.id, wasm.into()).await?;
-        println!(
-            "Task \"{}\" has been loaded into local the repository.",
-            self.id
-        );
+        match client.api.v0.tasks.create(&self.id, wasm).await {
+            Ok(()) => {
+                println!(
+                    "Task \"{}\" has been loaded into local the repository.",
+                    self.id
+                );
+            }
+            Err(e) => {
+                eprintln!("Failed to load task: {}", e);
+            }
+        }
 
         Ok(())
     }

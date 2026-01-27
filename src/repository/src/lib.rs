@@ -1,5 +1,7 @@
 pub mod backend;
 
+use std::sync::Arc;
+
 use anyhow::Result;
 use bytes::Bytes;
 
@@ -7,18 +9,19 @@ use mate::proto::task::TaskIdentifier;
 
 use crate::backend::{Backend, LocalBackend};
 
+#[derive(Clone)]
 pub struct TaskRepository {
-    backend: Box<dyn Backend>,
+    backend: Arc<dyn Backend + Send + Sync>,
 }
 
 impl TaskRepository {
-    pub fn new(backend: Box<dyn Backend>) -> Self {
+    pub fn new(backend: Arc<dyn Backend + Send + Sync>) -> Self {
         Self { backend }
     }
 
     pub async fn local() -> Result<Self> {
         let local = LocalBackend::new().await?;
-        let backend = Box::new(local);
+        let backend = Arc::new(local);
         Ok(Self { backend })
     }
 
