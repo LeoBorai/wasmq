@@ -3,6 +3,7 @@ use clap::Parser;
 use serde_json::Value;
 
 use mate::client::Client;
+use mate::client::api::v0::jobs::CreateJobRequest;
 use mate::proto::task::TaskIdentifier;
 
 use crate::cli::utils::io::parse_json;
@@ -12,12 +13,15 @@ pub struct JobNewOpt {
     /// Name of the job
     #[clap(long, short)]
     pub name: String,
-    /// Payload for the job in JSON format
+    /// Arguments for the job in JSON format
     #[clap(long, short, value_parser = parse_json)]
-    pub payload: Value,
+    pub args: Value,
     /// Task to execute this job with
     #[clap(long, short)]
     pub task: TaskIdentifier,
+    /// Maximum number of attempts for the job
+    #[clap(long, short, default_value_t = 3)]
+    pub max_attempts: u32,
 }
 
 impl JobNewOpt {
@@ -28,7 +32,12 @@ impl JobNewOpt {
             .api
             .v0
             .jobs
-            .create(self.name.clone(), self.task.clone(), self.payload.clone())
+            .create(CreateJobRequest {
+                name: self.name.clone(),
+                task: self.task.clone(),
+                args: self.args.clone(),
+                max_attempts: Some(self.max_attempts),
+            })
             .await
         {
             Ok(job) => {

@@ -72,6 +72,7 @@ impl Storage {
                 let mut jobs = self.jobs.lock().await;
 
                 if let Some(job) = jobs.get_mut(&id) {
+                    job.attempts += 1;
                     job.completed_at = Some(SystemTime::now());
 
                     match &result {
@@ -79,9 +80,8 @@ impl Storage {
                             job.status = JobStatus::Completed;
                         }
                         JobResult::Failure(err) => {
-                            if job.retry_count < job.max_retries {
+                            if job.attempts < job.max_attempts {
                                 job.status = JobStatus::Scheduled;
-                                job.retry_count += 1;
                                 job.errors.push(err.to_string());
                             } else {
                                 job.status = JobStatus::Failed;

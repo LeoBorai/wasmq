@@ -15,7 +15,7 @@ pub type ExecutorId = usize;
 pub struct Job {
     pub id: Uuid,
     pub name: String,
-    pub payload: Value,
+    pub args: Value,
     pub status: JobStatus,
     pub scheduled_at: SystemTime,
     pub task: TaskIdentifier,
@@ -23,8 +23,8 @@ pub struct Job {
     pub completed_at: Option<SystemTime>,
     pub errors: Vec<String>,
     pub result: Option<JobResult>,
-    pub retry_count: u32,
-    pub max_retries: u32,
+    pub attempts: u32,
+    pub max_attempts: u32,
 }
 
 impl PartialOrd for Job {
