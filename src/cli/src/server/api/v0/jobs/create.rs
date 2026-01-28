@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use std::time::{Duration, SystemTime};
 
 use axum::http::StatusCode;
@@ -17,19 +16,15 @@ use crate::server::state::SharedServices;
 #[derive(Debug, Deserialize)]
 pub struct CreateJobRequest {
     name: String,
-    task: String,
-    payload: Value,
+    task: TaskIdentifier,
+    args: Value,
+    max_attempts: Option<u32>,
 }
 
 pub async fn handler(
     Extension(services): Extension<SharedServices>,
     Json(job_data): Json<CreateJobRequest>,
 ) -> Result<Json<Job>, ApiError> {
-    let task = TaskIdentifier::from_str(&job_data.task).map_err(|_| ApiError {
-        message: String::from("Invalid task identifier format"),
-        status: StatusCode::BAD_REQUEST,
-    })?;
-
     if job_data.name.is_empty() || job_data.name.contains(' ') {
         return Err(ApiError {
             message: String::from("Job name cannot contain spaces and cannot be empty"),
@@ -37,25 +32,18 @@ pub async fn handler(
         });
     }
 
-    if job_data.task.is_empty() || job_data.task.contains(' ') {
-        return Err(ApiError {
-            message: String::from("Job task cannot contain spaces and cannot be empty"),
-            status: StatusCode::BAD_REQUEST,
-        });
-    }
-
     let job = Job {
         id: Uuid::new_v4(),
         name: job_data.name,
-        payload: job_data.payload,
+        args: job_data.args,
         status: JobStatus::Scheduled,
         scheduled_at: SystemTime::now() + Duration::from_secs(5),
         started_at: None,
         completed_at: None,
         result: None,
-        retry_count: 0,
-        max_retries: 3,
-        task,
+        attempts: 0,
+        max_attempts: job_data.max_attempts.unwrap_or(3),
+        task: job_data.task,
         errors: Vec::new(),
     };
     let msg = Message::new(

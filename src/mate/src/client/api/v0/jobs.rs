@@ -5,16 +5,15 @@ use serde::Serialize;
 use serde_json::Value;
 use uuid::Uuid;
 
-use crate::{
-    client::HttpClient,
-    proto::{job::Job, task::TaskIdentifier},
-};
+use crate::client::HttpClient;
+use crate::proto::{job::Job, task::TaskIdentifier};
 
 #[derive(Debug, Serialize)]
-struct CreateJobRequest {
-    name: String,
-    task: String,
-    payload: Value,
+pub struct CreateJobRequest {
+    pub name: String,
+    pub task: TaskIdentifier,
+    pub args: Value,
+    pub max_attempts: Option<u32>,
 }
 
 pub struct RetrieveJobsQuery {
@@ -31,18 +30,12 @@ impl ApiV0Jobs {
         Self { http_client }
     }
 
-    pub async fn create(&self, name: String, task: TaskIdentifier, payload: Value) -> Result<Job> {
-        let task = task.to_string();
-        let request = CreateJobRequest {
-            name,
-            task,
-            payload,
-        };
+    pub async fn create(&self, payload: CreateJobRequest) -> Result<Job> {
         let response = self
             .http_client
             .client
             .post(format!("{}/api/v0/jobs", self.http_client.base_url)) // Adjust the path as needed
-            .json(&request)
+            .json(&payload)
             .send()
             .await?;
 

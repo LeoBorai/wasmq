@@ -17,7 +17,7 @@ struct JobListItem {
     status: String,
     task: String,
     result: String,
-    retries: String,
+    attempts: String,
     tte: String,
 }
 
@@ -77,7 +77,7 @@ impl JobListOpt {
                                 Some(res) => format!("{}", res),
                                 None => "N/A".to_string(),
                             },
-                            retries: format!("{}/{}", job.retry_count, job.max_retries),
+                            attempts: format!("{}/{}", job.attempts, job.max_attempts),
                             tte: tte_label,
                         }
                     })

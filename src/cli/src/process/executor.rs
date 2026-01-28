@@ -86,7 +86,7 @@ impl ExecutorProcess {
         let tid = job.task.clone();
         let exid = self.id;
         let job_id = job.id;
-        let payload = job.payload.clone();
+        let args = job.args.clone();
         let process_type = self.process_type();
         let task = match self.get_or_load_module(&tid).await {
             Ok(m) => m,
@@ -111,12 +111,12 @@ impl ExecutorProcess {
             }
         };
 
-        let payload_bytes: Bytes = serde_json::to_vec(&payload)?.into();
+        let args_bytes: Bytes = serde_json::to_vec(&args)?.into();
 
         tokio::spawn(async move {
             info!(%job_id, %tid, %exid, "Executing Job");
 
-            let result = executor.run(task, payload_bytes).await;
+            let result = executor.run(task, args_bytes).await;
             let job_result = match result {
                 Ok(output) => {
                     info!(%job_id, "Job completed successfully");
