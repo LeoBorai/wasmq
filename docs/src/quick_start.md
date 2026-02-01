@@ -32,7 +32,15 @@ docker pull ghcr.io/leoborai/mate:latest
 docker run -p 6283:6283 ghcr.io/leoborai/mate
 ```
 
+> You can find more details on the GitHub's Docker
+> container [summary page](https://github.com/LeoBorai/mate/pkgs/container/mate).
+
 ### Locally
+
+Binaries for `mate` are published as part of the GitHub
+Action workflow for Release.
+
+Visit the [releases page](https://github.com/LeoBorai/mate/releases) for more details.
 
 ```bash
 mate run
@@ -42,14 +50,25 @@ mate run
 
 In order to have the mate Task reachable it must be registered in mate's Task Repository.
 
+The `task` directory from the GitHub's repository contains
+example tasks. A HTTP task in included which is used for
+performing HTTP requests.
+
 ```bash
-mate task load --id username/http@0.1.0 ./http.wasm
+mate task load --id mate/http@0.1.0 ./http.wasm
 ```
+
+> Tasks are named with a namespace, task name and version.
+> On this example we are storing a task `http` under
+> the `mate` namespace.
 
 ## Create a Job
 
-A Job is a scheduled execution of a Task with specific arguments.
-The following command creates a Job that will perform an HTTP POST request to `https://httpbin.org/post`
+A Job is the definion of time and arguwents to execute a `Task`
+on a desired moment of time with the desired arguments.
+
+The following command creates a Job that will perform an HTTP POST
+request to `https://httpbin.org/post`
 
 ```bash
 mate job new \
