@@ -1,6 +1,6 @@
 <div align="center">
   <h1><code>mate</code></h1>
-  <small>Job Queue for Rust applications powered with WASM</small>
+  <small>Job Queue for Rust applications powered by WASM</small>
 </div>
 
 <br />
