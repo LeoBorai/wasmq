@@ -61,6 +61,7 @@ impl Scheduler {
     }
 
     async fn scheduler(&self) -> Result<()> {
+        // preload jobs on startup into our queue
         self.load_upcoming_jobs().await?;
 
         loop {
@@ -139,10 +140,11 @@ impl Scheduler {
                 if let MessagePayload::JobsResult(jobs) = response.payload {
                     let mut queue = self.queue.lock().await;
 
-                    // FIXME: Instead of replace all, we could merge intelligently
-                    // queue.clear();
-
                     for job in jobs {
+                        if queue.iter().any(|j| j.id == job.id) {
+                            continue;
+                        }
+
                         queue.push(job);
                     }
 
