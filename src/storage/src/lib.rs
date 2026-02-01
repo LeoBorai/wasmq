@@ -69,7 +69,7 @@ impl Storage {
     async fn handle_message(&mut self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
             MessagePayload::JobCompleted(id, result) => {
-                debug!(%id, ?result, "Job completed");
+                debug!(%id, "Job completed");
                 let mut jobs = self.jobs.lock().await;
 
                 if let Some(job) = jobs.get_mut(&id) {

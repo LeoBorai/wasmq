@@ -63,7 +63,7 @@ impl Hub {
         child_processes.push(scheduler);
 
         // Spawn Executor processes (e.g., 4 workers)
-        for i in 0..4 {
+        for i in 0..1 {
             let executor = Command::new(&mate_exe)
                 .arg("executor")
                 .arg("spawn")
