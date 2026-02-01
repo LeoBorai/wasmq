@@ -1,6 +1,6 @@
 [book]
-authors = ["Leo Borai"]
-language = "en"
-multilingual = false
-src = "src"
 title = "mate"
+authors = ["Leo Borai"]
+description = "A Job Scheduler for Rust"
+language = "en"
+src = "src"
