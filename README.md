@@ -1,9 +1,6 @@
 <div align="center">
-  <figure>
-      <img src="./assets/logo.png" height="80px" width="auto" />
-  </figure>
   <h1><code>mate</code></h1>
-  <small>🦀🧡🧉</small>
+  <small>Job Queue for Rust applications powered with WASM</small>
 </div>
 
 <p align="center" dir="auto">
