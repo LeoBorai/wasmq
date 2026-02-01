@@ -259,12 +259,10 @@ jobs:
 
       # https://github.com/actions/upload-pages-artifact
       - name: Upload static files as artifact
-        id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/book
 
       # https://github.com/actions/deploy-pages
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
