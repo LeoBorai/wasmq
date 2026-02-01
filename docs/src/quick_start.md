@@ -1,5 +1,21 @@
 # Quick Start
 
+Welcome to the "mate" quick start guide.
+"mate" is a Job Scheduler (also known as Job Queue) inspired
+on solutions like Sidekiq from Ruby and Celery from Python.
+
+Job Schedulers allows you to schedule a piece of logic to be
+executed asynchronously on a desired point on time.
+
+For instance you might want to send a reminder email to a
+user in eleven months to remind it to renew a subscription.
+
+You could also use the Job Scheduler (in the terms of Job Queue)
+to offload your server's background tasks.
+
+For instance, you could perform a AI model long process
+in the background.
+
 ## Requirements
 
 - `mate`: The mate CLI and server
