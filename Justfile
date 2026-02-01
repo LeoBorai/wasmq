@@ -12,6 +12,14 @@ build-task task:
     cd ./task/{{task}} && cargo +nightly build --release --target wasm32-wasip2
     mv ./target/wasm32-wasip2/release/{{task}}.wasm ./{{task}}.wasm
 
+# Builds docs into static files (docs/book/)
+docs-build:
+    cd ./docs && mdbook build
+
+# Runs server to serve docs locally (http://localhost:3000)
+docs-dev:
+    cd ./docs && mdbook serve
+
 # Builds the Server binary used in the Docker Image
 docker-build:
     cargo zigbuild --target {{target_release}} --release --bin mate

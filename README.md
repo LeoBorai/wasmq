@@ -1,13 +1,13 @@
 <div align="center">
   <figure>
-      <img src="./docs/bookworm.png" height="80px" width="auto" />
+      <img src="./assets/logo.png" height="80px" width="auto" />
   </figure>
   <h1><code>mate</code></h1>
   <small>🦀🧡🧉</small>
 </div>
 
 <p align="center" dir="auto">
-    <img src="docs/earlydev.svg" alt="Early development notice"/>
+    <img src="assets/earlydev.svg" alt="Early development notice"/>
 </p>
 
 ## Installation
