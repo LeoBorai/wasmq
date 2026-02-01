@@ -4,7 +4,7 @@ use std::time::{Duration, SystemTime};
 
 use anyhow::{Result, bail};
 use tokio::sync::Mutex;
-use tracing::{debug, error, info};
+use tracing::{debug, info};
 use uuid::Uuid;
 
 use mate::proto::job::{Job, JobResult, JobStatus};
@@ -13,6 +13,7 @@ use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
 const IPC_SENDER_STORAGE: ProcessType = ProcessType::Storage;
+const MAX_JOBS_PER_BATCH: usize = 5;
 
 pub struct Storage {
     ipc: Arc<IpcServer>,
@@ -103,19 +104,6 @@ impl Storage {
                 let mut jobs = self.jobs.lock().await;
                 jobs.insert(id, job.clone());
                 drop(jobs);
-
-                if let Err(err) = self
-                    .ipc
-                    .send(Message::new(
-                        ProcessType::Storage,
-                        ProcessType::Scheduler,
-                        MessagePayload::JobStored(Ok(job.clone())),
-                    ))
-                    .await
-                {
-                    error!(?err, "Failed to notify Scheduler about stored Job {id}");
-                }
-
                 Some(MessagePayload::JobStored(Ok(job)))
             }
             MessagePayload::QueryJobs(query) => {
@@ -136,18 +124,19 @@ impl Storage {
                 info!(jobs = jobs.len(), "Returning jobs from storage");
                 Some(MessagePayload::JobsResult(jobs))
             }
-            MessagePayload::ClaimJobs((_start, _end)) => {
+            MessagePayload::ClaimJobs((_, end)) => {
                 let mut jobs = self.jobs.lock().await;
                 let jobs: Vec<Job> = jobs
                     .iter_mut()
                     .filter(|(_, j)| j.status == JobStatus::Scheduled)
-                    .take(5)
+                    .filter(|(_, j)| j.scheduled_at <= end)
+                    .take(MAX_JOBS_PER_BATCH)
                     .map(|(_, job)| {
                         job.status = JobStatus::Claimed;
                         job.clone()
                     })
                     .collect();
-
+                info!(jobs = jobs.len(), "Claimed jobs from storage");
                 Some(MessagePayload::JobsResult(jobs))
             }
             MessagePayload::Ping => Some(MessagePayload::Pong),

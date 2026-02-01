@@ -173,10 +173,13 @@ impl ExecutorProcess {
 
     async fn handle_message(&self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
-            MessagePayload::ExecuteJob(job) => match self.execute(job.clone()).await {
-                Ok(()) => Some(MessagePayload::JobAccepted(job.id)),
-                Err(err) => Some(MessagePayload::JobFailed(job.id, err.to_string())),
-            },
+            MessagePayload::ExecuteJob(job) => {
+                info!("Received ExecuteJob message for job {}", job.id);
+                match self.execute(job.clone()).await {
+                    Ok(()) => Some(MessagePayload::JobAccepted(job.id)),
+                    Err(err) => Some(MessagePayload::JobFailed(job.id, err.to_string())),
+                }
+            }
             MessagePayload::Ping => Some(MessagePayload::Pong),
             MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
             _ => None,

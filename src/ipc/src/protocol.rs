@@ -56,7 +56,7 @@ pub struct Message {
     pub from: ProcessType,
     pub to: ProcessType,
     pub payload: MessagePayload,
-    pub reply_to: Option<Uuid>, // For request-response pattern
+    pub reply_to: Option<Uuid>,
 }
 
 impl Message {

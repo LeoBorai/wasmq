@@ -4,7 +4,6 @@ use std::time::{Duration, SystemTime};
 
 use anyhow::{Result, bail};
 use tokio::sync::Mutex;
-use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender, unbounded_channel};
 use tokio::time::{interval, sleep};
 use tracing::{error, info, warn};
 
@@ -24,14 +23,11 @@ pub struct Scheduler {
     executor_count: usize,
     current_executor: Mutex<usize>,
     queue: Arc<Mutex<BinaryHeap<Job>>>,
-    rx: Arc<Mutex<UnboundedReceiver<Job>>>,
-    tx: UnboundedSender<Job>,
 }
 
 impl Scheduler {
     pub async fn new(transport: Box<dyn Transport>, executor_count: usize) -> Result<Self> {
         let ipc = Arc::new(IpcServer::new(IPC_SENDER_SCHEDULER, transport));
-        let (tx, rx) = unbounded_channel();
         let queue = Arc::new(Mutex::new(BinaryHeap::new()));
 
         Ok(Self {
@@ -39,8 +35,6 @@ impl Scheduler {
             executor_count,
             current_executor: Mutex::new(0),
             queue,
-            rx: Arc::new(Mutex::new(rx)),
-            tx,
         })
     }
 
@@ -66,6 +60,7 @@ impl Scheduler {
 
         loop {
             let mut queue = self.queue.lock().await;
+            info!(?queue, "Jobs in queue");
             let job = match queue.peek() {
                 Some(job) => job.clone(),
                 None => {
@@ -81,6 +76,7 @@ impl Scheduler {
                 Ok(duration) => duration,
                 Err(_) => {
                     if let Some(job) = queue.pop() {
+                        info!(?queue, "Jobs left in queue");
                         drop(queue);
                         info!("Executing overdue job: {:?}", job.id);
                         if let Err(err) = self.dispatch_job(job).await {
@@ -98,18 +94,7 @@ impl Scheduler {
             let sleep_duration = sleep_duration.max(SLEEP_INTERVAL);
 
             info!("Sleeping for {:?} until next job", sleep_duration);
-
-            tokio::select! {
-                _ = sleep(sleep_duration) => {}
-                Some(new_job) = async {
-                    let mut rx = self.rx.lock().await;
-                    rx.recv().await
-                } => {
-                    info!("New job received, adding to queue");
-                    let mut queue = self.queue.lock().await;
-                    queue.push(new_job);
-                }
-            }
+            sleep(sleep_duration).await;
         }
     }
 
@@ -229,15 +214,6 @@ impl Scheduler {
         match msg.payload {
             MessagePayload::Ping => Some(MessagePayload::Pong),
             MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
-            MessagePayload::JobStored(Ok(job)) => {
-                let id = job.id;
-
-                if let Err(err) = self.tx.send(job) {
-                    error!(?err, "Failed to enqueue new job received from Storage");
-                }
-
-                Some(MessagePayload::JobAccepted(id))
-            }
             _ => None,
         }
     }
