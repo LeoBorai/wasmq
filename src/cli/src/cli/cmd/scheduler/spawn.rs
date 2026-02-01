@@ -5,7 +5,7 @@ use clap::Parser;
 
 use mate_config::Config;
 use mate_ipc::protocol::ProcessType;
-use tracing::info;
+use tracing::debug;
 
 use crate::process::scheduler::SchedulerProcess;
 use crate::transport::make_transport;
@@ -22,7 +22,7 @@ impl SchedulerSpawnOpt {
         let transport = make_transport(config.clone(), ProcessType::Scheduler).await?;
         let mut scheduler = SchedulerProcess::new(transport, 1).await?;
 
-        info!("Starting scheduler process…");
+        debug!("Starting scheduler process…");
         scheduler.run().await?;
 
         Ok(())

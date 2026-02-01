@@ -10,6 +10,7 @@ use tokio::time::sleep;
 use mate_config::Config;
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use tracing::debug;
 
 use crate::transport::make_transport;
 
@@ -90,7 +91,7 @@ impl Hub {
             ))
             .await?;
 
-        println!("✓ Storage OK!");
+        debug!("✓ Storage");
 
         self.ipc
             .request(Message::new(
@@ -100,9 +101,9 @@ impl Hub {
             ))
             .await?;
 
-        println!("✓ Scheduler OK!");
+        debug!("✓ Scheduler");
 
-        for i in 0..4 {
+        for i in 0..1 {
             self.ipc
                 .request(Message::new(
                     IPC_SENDER_HUB,
@@ -111,7 +112,7 @@ impl Hub {
                 ))
                 .await?;
 
-            println!("✓ Executor({i}) OK!");
+            debug!("✓ Executor({i})");
         }
 
         Ok(())
