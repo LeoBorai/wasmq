@@ -7,3 +7,11 @@ use serde::{Deserialize, Serialize};
 pub enum TransportConfig {
     UnixSocket { base_path: PathBuf },
 }
+
+impl Default for TransportConfig {
+    fn default() -> Self {
+        Self::UnixSocket {
+            base_path: PathBuf::from("/tmp/mate_sys"),
+        }
+    }
+}

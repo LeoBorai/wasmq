@@ -5,7 +5,7 @@ use std::time::{Duration, SystemTime};
 use anyhow::{Result, bail};
 use tokio::sync::Mutex;
 use tokio::time::{interval, sleep};
-use tracing::{error, info, warn};
+use tracing::{debug, error, warn};
 
 use mate::proto::job::{Job, JobStatus};
 use mate_ipc::channel::IpcServer;
@@ -60,12 +60,10 @@ impl Scheduler {
 
         loop {
             let mut queue = self.queue.lock().await;
-            info!(?queue, "Jobs in queue");
             let job = match queue.peek() {
                 Some(job) => job.clone(),
                 None => {
                     drop(queue);
-                    info!("No jobs in queue, sleeping for default interval");
                     sleep(CHECK_INTERVAL).await;
                     self.load_upcoming_jobs().await?;
                     continue;
@@ -76,9 +74,8 @@ impl Scheduler {
                 Ok(duration) => duration,
                 Err(_) => {
                     if let Some(job) = queue.pop() {
-                        info!(?queue, "Jobs left in queue");
                         drop(queue);
-                        info!("Executing overdue job: {:?}", job.id);
+                        debug!("Executing overdue job: {:?}", job.id);
                         if let Err(err) = self.dispatch_job(job).await {
                             warn!(?err, "Failed to dispatch job");
                         }
@@ -92,8 +89,6 @@ impl Scheduler {
 
             let sleep_duration = time_until_job.min(CHECK_INTERVAL);
             let sleep_duration = sleep_duration.max(SLEEP_INTERVAL);
-
-            info!("Sleeping for {:?} until next job", sleep_duration);
             sleep(sleep_duration).await;
         }
     }
@@ -103,7 +98,7 @@ impl Scheduler {
 
         loop {
             interval.tick().await;
-            info!("Periodic reload of jobs from storage");
+
             if let Err(err) = self.load_upcoming_jobs().await {
                 warn!(?err, "Failed to reload jobs from storage");
             }
@@ -132,8 +127,6 @@ impl Scheduler {
 
                         queue.push(job);
                     }
-
-                    info!("Loaded {} jobs into queue", queue.len());
                 }
             }
             Err(err) => {

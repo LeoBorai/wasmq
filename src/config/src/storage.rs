@@ -9,3 +9,11 @@ pub struct StorageConfig {
 pub enum StorageBackend {
     Memory,
 }
+
+impl Default for StorageConfig {
+    fn default() -> Self {
+        Self {
+            backend: StorageBackend::Memory,
+        }
+    }
+}

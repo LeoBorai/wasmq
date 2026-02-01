@@ -16,7 +16,7 @@ use crate::scheduler::SchedulerConfig;
 use crate::storage::StorageConfig;
 use crate::transport::TransportConfig;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Config {
     pub transport: TransportConfig,
     pub hub: HubConfig,
@@ -26,6 +26,12 @@ pub struct Config {
 }
 
 impl Config {
+    /// Serializes a [`Config`] instance into a TOML string
+    pub fn to_toml(&self) -> Result<String> {
+        toml::to_string_pretty(self)
+            .with_context(|| String::from("Failed to serialize configuration to TOML format."))
+    }
+
     /// Creates a [`Config`] instance from a `.toml` file
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let contents = read_to_string(path)?;

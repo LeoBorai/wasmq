@@ -5,7 +5,7 @@ use clap::Parser;
 
 use mate_config::Config;
 use mate_ipc::protocol::ProcessType;
-use tracing::info;
+use tracing::debug;
 
 use crate::process::executor::ExecutorProcess;
 use crate::transport::make_transport;
@@ -24,7 +24,7 @@ impl ExecutorSpawnOpt {
         let transport = make_transport(config.clone(), ProcessType::Executor(self.id)).await?;
         let mut executor = ExecutorProcess::new(transport, self.id).await?;
 
-        info!(id=%self.id, "Starting executor process…");
+        debug!(id=%self.id, "Starting executor process…");
         executor.run().await?;
 
         Ok(())

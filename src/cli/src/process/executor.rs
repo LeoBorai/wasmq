@@ -4,7 +4,7 @@ use std::sync::Arc;
 use anyhow::{Context, Result, bail};
 use bytes::Bytes;
 use tokio::sync::RwLock;
-use tracing::{error, info};
+use tracing::{debug, error};
 
 use mate::proto::job::{Job, JobResult};
 use mate::proto::task::TaskIdentifier;
@@ -56,8 +56,6 @@ impl ExecutorProcess {
             }
         }
 
-        info!(?tid, "Loading WASM module from repository");
-
         let task_bytes = self
             .repository
             .find(tid)
@@ -73,7 +71,6 @@ impl ExecutorProcess {
                     .clone()
             };
 
-            info!(?tid, "WASM module loaded and cached");
             return Ok(cached_wasm);
         }
 
@@ -114,14 +111,11 @@ impl ExecutorProcess {
         let args_bytes: Bytes = serde_json::to_vec(&args)?.into();
 
         tokio::spawn(async move {
-            info!(%job_id, %tid, %exid, "Executing Job");
+            debug!(%job_id, %tid, %exid, "Executing Job");
 
             let result = executor.run(task, args_bytes).await;
             let job_result = match result {
-                Ok(output) => {
-                    info!(%job_id, "Job completed successfully");
-                    JobResult::Success(output)
-                }
+                Ok(output) => JobResult::Success(output),
                 Err(err) => {
                     error!(?err, %job_id, "Job execution failed");
                     JobResult::Failure(err.to_string())
@@ -173,13 +167,10 @@ impl ExecutorProcess {
 
     async fn handle_message(&self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
-            MessagePayload::ExecuteJob(job) => {
-                info!("Received ExecuteJob message for job {}", job.id);
-                match self.execute(job.clone()).await {
-                    Ok(()) => Some(MessagePayload::JobAccepted(job.id)),
-                    Err(err) => Some(MessagePayload::JobFailed(job.id, err.to_string())),
-                }
-            }
+            MessagePayload::ExecuteJob(job) => match self.execute(job.clone()).await {
+                Ok(()) => Some(MessagePayload::JobAccepted(job.id)),
+                Err(err) => Some(MessagePayload::JobFailed(job.id, err.to_string())),
+            },
             MessagePayload::Ping => Some(MessagePayload::Pong),
             MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
             _ => None,

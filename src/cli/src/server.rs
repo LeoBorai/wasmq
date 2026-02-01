@@ -7,7 +7,6 @@ use anyhow::Result;
 use axum::Router;
 use mate_repository::TaskRepository;
 use tokio::net::TcpListener;
-use tracing::info;
 
 use mate_config::Config;
 
@@ -21,7 +20,7 @@ pub async fn run_server(config: &Config, hub: Arc<Hub>, repo: Arc<TaskRepository
     let app = Router::new().merge(routes(services));
     let listener = TcpListener::bind("0.0.0.0:6283").await?;
 
-    info!(addr=?config.hub.api_addr, "Server listening");
+    println!("Server listening. {}", config.hub.api_addr);
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
