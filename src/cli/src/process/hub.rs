@@ -1,16 +1,19 @@
 use std::env::current_exe;
+use std::fs::File;
+use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
+use tempfile::TempDir;
 use tokio::process::{Child, Command};
 use tokio::time::sleep;
+use tracing::debug;
 
 use mate_config::Config;
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
-use tracing::debug;
 
 use crate::transport::make_transport;
 
@@ -18,21 +21,31 @@ const IPC_SENDER_HUB: ProcessType = ProcessType::Hub;
 
 pub struct Hub {
     config: Config,
-    config_path: PathBuf,
     ipc: Arc<IpcServer>,
+    config_path: PathBuf,
+    // Keep the TempDir alive for the lifetime of the Hub
+    #[allow(dead_code)]
+    session_dir: TempDir,
 }
 
 impl Hub {
-    pub async fn new(config_path: PathBuf) -> Result<Self> {
-        let config = Config::from_file(&config_path)?;
+    pub async fn new(config: Config) -> Result<Self> {
+        let session_dir = TempDir::new()?;
+        let session_dir_path = session_dir.path();
+        let config_path = session_dir_path.join("config.toml");
+        let mut config_file = File::create(&config_path)?;
+        let config_toml = config.to_toml()?;
+        config_file.write_all(config_toml.as_bytes())?;
+
         let transport = make_transport(config.clone(), IPC_SENDER_HUB).await?;
         let ipc = IpcServer::new(IPC_SENDER_HUB, transport);
         let ipc = Arc::new(ipc);
 
         Ok(Self {
             config,
-            config_path,
             ipc,
+            config_path,
+            session_dir,
         })
     }
 
@@ -45,8 +58,8 @@ impl Hub {
         let mate_exe = current_exe()?;
         let mut child_processes = Vec::new();
         let storage = Command::new(&mate_exe)
+            .arg("component")
             .arg("storage")
-            .arg("spawn")
             .arg("--config")
             .arg(self.config_path.to_str().unwrap())
             .spawn()?;
@@ -54,19 +67,18 @@ impl Hub {
         child_processes.push(storage);
 
         let scheduler = Command::new(&mate_exe)
+            .arg("component")
             .arg("scheduler")
-            .arg("spawn")
             .arg("--config")
             .arg(self.config_path.to_str().unwrap())
             .spawn()?;
 
         child_processes.push(scheduler);
 
-        // Spawn Executor processes (e.g., 4 workers)
-        for i in 0..1 {
+        for i in 0..self.config.executors.count {
             let executor = Command::new(&mate_exe)
+                .arg("component")
                 .arg("executor")
-                .arg("spawn")
                 .arg("--config")
                 .arg(self.config_path.to_str().unwrap())
                 .arg("--id")

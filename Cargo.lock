@@ -1617,6 +1617,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tabled",
+ "tempfile",
  "tokio",
  "tracing",
  "tracing-subscriber",

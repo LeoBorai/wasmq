@@ -14,7 +14,8 @@ use crate::cli::Cli;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let env_layer = EnvFilter::try_from_default_env()?;
+    let env_layer =
+        EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new("mate=info"))?;
 
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
