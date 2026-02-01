@@ -3,6 +3,8 @@
   <small>Job Queue for Rust applications powered with WASM</small>
 </div>
 
+<br />
+
 <p align="center" dir="auto">
     <img src="assets/earlydev.svg" alt="Early development notice"/>
 </p>
