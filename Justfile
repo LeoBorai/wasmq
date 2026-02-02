@@ -27,7 +27,6 @@ docker-build:
 # Builds the Docker image
 docker-build-image: docker-build
     mkdir -p ./docker/tmp/
-    cp ./docs/config/local.toml ./docker/tmp/local.toml
     cp ./target/{{target_release}}/release/mate ./docker/tmp/mate
     chmod +x ./docker/tmp/mate
     docker build -t "mate:$(cargo tag current)" ./docker
