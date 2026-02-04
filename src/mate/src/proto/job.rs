@@ -28,7 +28,12 @@ pub struct Job {
 }
 
 impl Job {
-    pub fn new(name: String, args: Value, scheduled_at: SystemTime, task: TaskIdentifier) -> Result<Self> {
+    pub fn new(
+        name: String,
+        args: Value,
+        scheduled_at: SystemTime,
+        task: TaskIdentifier,
+    ) -> Result<Self> {
         if name.is_empty() || name.contains(' ') {
             bail!("Job name cannot contain spaces and cannot be empty");
         }

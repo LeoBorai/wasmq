@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::{Result, bail};
+use chrono::{DateTime, Utc};
 use serde::Serialize;
 use serde_json::Value;
 use uuid::Uuid;
@@ -14,6 +15,7 @@ pub struct CreateJobRequest {
     pub task: TaskIdentifier,
     pub args: Value,
     pub max_attempts: Option<u32>,
+    pub scheduled_at: DateTime<Utc>,
 }
 
 pub struct RetrieveJobsQuery {

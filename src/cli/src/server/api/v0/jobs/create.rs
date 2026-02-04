@@ -1,7 +1,6 @@
-use std::time::{Duration, SystemTime};
-
 use axum::http::StatusCode;
 use axum::{Extension, Json};
+use chrono::{DateTime, Utc};
 use mate::proto::task::TaskIdentifier;
 use serde::Deserialize;
 use serde_json::Value;
@@ -18,7 +17,7 @@ pub struct CreateJobRequest {
     task: TaskIdentifier,
     args: Value,
     max_attempts: Option<u32>,
-    scheduled_at: SystemTime,
+    scheduled_at: DateTime<Utc>,
 }
 
 pub async fn handler(
@@ -28,7 +27,7 @@ pub async fn handler(
     let mut job = Job::new(
         payload.name,
         payload.args,
-        payload.scheduled_at,
+        payload.scheduled_at.into(),
         payload.task,
     )
     .map_err(|err| ApiError {

@@ -88,9 +88,10 @@ request to `https://httpbin.org/post`
 
 ```bash
 mate job new \
-    --name hello-mate \
+    --name greet \
     --args "{\"api_url\": \"https://httpbin.org/post\",\"data\": {\"sample_key\": \"sample_value\"}}" \
-    --task username/http@0.1.0
+    --task leo/http@0.1.0 \
+    --scheduled-at 3s
 ```
 
 ## List Jobs
