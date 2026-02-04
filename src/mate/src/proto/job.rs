@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::time::SystemTime;
 use std::{cmp::Ordering, str::FromStr};
 
-use anyhow::{Error, bail};
+use anyhow::{Error, Result, bail};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -25,6 +25,44 @@ pub struct Job {
     pub result: Option<JobResult>,
     pub attempts: u32,
     pub max_attempts: u32,
+}
+
+impl Job {
+    pub fn new(
+        name: String,
+        args: Value,
+        scheduled_at: SystemTime,
+        task: TaskIdentifier,
+    ) -> Result<Self> {
+        if name.is_empty() || name.contains(' ') {
+            bail!("Job name cannot contain spaces and cannot be empty");
+        }
+
+        Ok(Self {
+            id: Uuid::new_v4(),
+            name,
+            args,
+            status: JobStatus::Scheduled,
+            scheduled_at,
+            task,
+            started_at: None,
+            completed_at: None,
+            errors: Vec::new(),
+            result: None,
+            attempts: 0,
+            max_attempts: 3,
+        })
+    }
+
+    pub fn set_max_attempts(&mut self, max_attempts: u32) -> Result<()> {
+        if max_attempts == 0 {
+            bail!("max_attempts must be greater than 0");
+        }
+
+        self.max_attempts = max_attempts;
+
+        Ok(())
+    }
 }
 
 impl PartialOrd for Job {
