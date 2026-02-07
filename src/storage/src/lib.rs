@@ -1,3 +1,5 @@
+mod backend;
+
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
@@ -12,21 +14,23 @@ use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
+use crate::backend::Backend;
+
 const IPC_SENDER_STORAGE: ProcessType = ProcessType::Storage;
 const MAX_JOBS_PER_BATCH: usize = 5;
 
 pub struct Storage {
     ipc: Arc<IpcServer>,
-    jobs: Mutex<HashMap<Uuid, Job>>,
+    backend: Arc<dyn Backend + Send + Sync>,
 }
 
 impl Storage {
-    pub fn new(transport: Box<dyn Transport>) -> Self {
+    pub fn new(transport: Box<dyn Transport>, backend: Arc<dyn Backend + Send + Sync>) -> Self {
         let ipc = Arc::new(IpcServer::new(IPC_SENDER_STORAGE, transport));
 
         Self {
-            jobs: Mutex::new(HashMap::new()),
             ipc,
+            backend,
         }
     }
 
