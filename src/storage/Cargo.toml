@@ -14,8 +14,8 @@ path = "src/lib.rs"
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 bytes = { workspace = true }
+fjall = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-sqlx = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }

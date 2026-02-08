@@ -1,13 +1,10 @@
-mod backend;
+pub mod backend;
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
 use anyhow::{Result, bail};
-use tokio::sync::Mutex;
 use tracing::debug;
-use uuid::Uuid;
 
 use mate::proto::job::{Job, JobResult, JobStatus};
 use mate_ipc::channel::IpcServer;

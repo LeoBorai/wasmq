@@ -8,8 +8,8 @@ pub struct StorageProcess {
 }
 
 impl StorageProcess {
-    pub fn new(transport: Box<dyn Transport>) -> Self {
-        let storage = Storage::new(transport);
+    pub fn new(transport: Box<dyn Transport>, backend: Arc<dyn Backend + Send + Sync>) -> Self {
+        let storage = Storage::new(transport, backend);
 
         Self { storage }
     }
