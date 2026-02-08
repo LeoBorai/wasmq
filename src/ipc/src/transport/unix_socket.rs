@@ -188,10 +188,7 @@ impl UnixSocketTransport {
 
                 debug!(
                     "Waiting for target process {:?} socket to be available at {:?} (attempt {}/{})",
-                    msg.to,
-                    target_socket,
-                    tries,
-                    UNIX_SOCKET_CONNECTION_RETRIES
+                    msg.to, target_socket, tries, UNIX_SOCKET_CONNECTION_RETRIES
                 );
             }
         }
