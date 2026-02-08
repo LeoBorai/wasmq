@@ -14,6 +14,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender, unbounded_channel};
 use tokio::sync::oneshot::{Sender, channel};
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, timeout};
+use tracing::debug;
 use uuid::Uuid;
 
 use crate::protocol::{Message, ProcessType};
@@ -165,13 +166,34 @@ impl UnixSocketTransport {
     /// Finally frees the connection
     async fn send_message_internal(&self, msg: &Message) -> Result<()> {
         let target_socket = Self::socket_path_for_process(&self.base_path, &msg.to);
+        let mut tries = 0;
 
         if !target_socket.exists() {
-            return Err(anyhow!(
-                "Target process {:?} socket does not exist at {:?}",
-                msg.to,
-                target_socket
-            ));
+            loop {
+                if target_socket.exists() {
+                    break;
+                }
+
+                if tries >= UNIX_SOCKET_CONNECTION_RETRIES {
+                    return Err(anyhow!(
+                        "Target process {:?} socket does not exist at {:?}",
+                        msg.to,
+                        target_socket
+                    ));
+                }
+
+                sleep(Duration::from_millis(10)).await;
+
+                tries += 1;
+
+                debug!(
+                    "Waiting for target process {:?} socket to be available at {:?} (attempt {}/{})",
+                    msg.to,
+                    target_socket,
+                    tries,
+                    UNIX_SOCKET_CONNECTION_RETRIES
+                );
+            }
         }
 
         let mut stream =
