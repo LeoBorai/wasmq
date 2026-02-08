@@ -1,10 +1,8 @@
 use anyhow::Result;
 
 use mate_config::{Config, transport::TransportConfig};
-use mate_ipc::{
-    protocol::ProcessType,
-    transport::{Transport, unix_socket::UnixSocketTransport},
-};
+use mate_ipc::protocol::ProcessType;
+use mate_ipc::transport::{Transport, unix_socket::UnixSocketTransport};
 
 // TODO: Instead of accessing the Transport directly, we should only access the `IpcService`
 pub async fn make_transport(

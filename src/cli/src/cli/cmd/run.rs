@@ -20,8 +20,6 @@ impl RunCmd {
         let hub = Arc::new(hub);
         let repo = Arc::new(TaskRepository::local().await?);
 
-        hub.wait_for_components().await?;
-
         tokio::select! {
             Err(err) = run_server(hub.config(), Arc::clone(&hub), Arc::clone(&repo)) => {
                 error!("Server returned an error. {:#?}", err);

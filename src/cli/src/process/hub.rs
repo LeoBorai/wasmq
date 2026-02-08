@@ -3,12 +3,10 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::Duration;
 
 use anyhow::Result;
 use tempfile::TempDir;
 use tokio::process::{Child, Command};
-use tokio::time::sleep;
 use tracing::debug;
 
 use mate_config::Config;
@@ -88,8 +86,7 @@ impl Hub {
             child_processes.push(executor);
         }
 
-        // TODO: Perform Polling via Transport perhaps?
-        sleep(Duration::from_secs(1)).await;
+        self.wait_for_components().await?;
 
         Ok(child_processes)
     }

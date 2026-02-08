@@ -41,3 +41,7 @@ docker-publish-image:
 # Runs the Docker image locally
 docker-run-image: docker-build-image
     docker run mate:$(cargo tag current)
+
+# Runs clippy and fmt on the entire workspace
+fmt:
+    cargo clippy --fix --workspace --allow-dirty --allow-staged && cargo fmt

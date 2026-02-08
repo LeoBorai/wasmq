@@ -14,6 +14,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender, unbounded_channel};
 use tokio::sync::oneshot::{Sender, channel};
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, timeout};
+use tracing::debug;
 use uuid::Uuid;
 
 use crate::protocol::{Message, ProcessType};
@@ -165,15 +166,6 @@ impl UnixSocketTransport {
     /// Finally frees the connection
     async fn send_message_internal(&self, msg: &Message) -> Result<()> {
         let target_socket = Self::socket_path_for_process(&self.base_path, &msg.to);
-
-        if !target_socket.exists() {
-            return Err(anyhow!(
-                "Target process {:?} socket does not exist at {:?}",
-                msg.to,
-                target_socket
-            ));
-        }
-
         let mut stream =
             Self::connect_with_retry(&target_socket, UNIX_SOCKET_CONNECTION_RETRIES).await?;
         let serialized = serde_json::to_vec(msg)?;
@@ -198,6 +190,13 @@ impl UnixSocketTransport {
                 Err(e) => {
                     last_error = Some(e);
                     if attempt < retries - 1 {
+                        debug!(
+                            "Failed to connect to {:?} (attempt {}/{}): {}. Retrying...",
+                            socket_path,
+                            attempt + 1,
+                            retries,
+                            last_error.as_ref().unwrap()
+                        );
                         let delay = Duration::from_millis(10 * (1 << attempt));
                         sleep(delay).await;
                     }
@@ -205,7 +204,7 @@ impl UnixSocketTransport {
             }
         }
 
-        Err(anyhow::anyhow!(
+        Err(anyhow!(
             "Failed to connect to {:?} after {} retries: {}",
             socket_path,
             retries,
