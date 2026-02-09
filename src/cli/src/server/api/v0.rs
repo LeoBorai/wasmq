@@ -1,3 +1,4 @@
+pub mod health;
 pub mod jobs;
 pub mod tasks;
 
@@ -8,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 pub fn routes() -> Router {
     Router::new()
+        .nest("/health", health::routes())
         .nest("/jobs", jobs::routes())
         .nest("/tasks", tasks::routes())
 }
