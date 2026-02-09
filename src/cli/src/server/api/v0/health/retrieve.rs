@@ -1,7 +1,6 @@
 use axum::{Extension, Json};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use mate::proto::job::{Job, JobQuery, JobStatus};
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 
 use crate::process::hub::IPC_SENDER_HUB;
@@ -11,30 +10,30 @@ use crate::server::state::SharedServices;
 #[derive(Serialize)]
 pub struct HealthResponse {
     pub storage: bool,
-    pub schoduler: bool,
+    pub scheduler: bool,
 }
 
 pub async fn handler(
     Extension(services): Extension<SharedServices>,
 ) -> Result<Json<HealthResponse>, ApiError> {
-    let storage = services.hub.ipc()
+    let ipc = services.hub.ipc();
+    let storage = ipc
         .request(Message::new(
             IPC_SENDER_HUB,
             ProcessType::Storage,
             MessagePayload::Ping,
         ))
-        .await;
+        .await
+        .is_ok();
 
-    let storage = services.hub.ipc()
+    let scheduler = ipc
         .request(Message::new(
             IPC_SENDER_HUB,
             ProcessType::Scheduler,
             MessagePayload::Ping,
         ))
-        .await;
+        .await
+        .is_ok();
 
-    Ok(Json(HealthResponse {
-        storage: storage.is_ok(),
-        schoduler: storage.is_ok(),
-    }))
+    Ok(Json(HealthResponse { storage, scheduler }))
 }
