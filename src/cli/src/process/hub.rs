@@ -15,7 +15,7 @@ use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 
 use crate::transport::make_transport;
 
-const IPC_SENDER_HUB: ProcessType = ProcessType::Hub;
+pub const IPC_SENDER_HUB: ProcessType = ProcessType::Hub;
 
 pub struct Hub {
     config: Config,

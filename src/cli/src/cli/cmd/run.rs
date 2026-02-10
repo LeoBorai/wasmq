@@ -7,7 +7,9 @@ use mate_config::Config;
 use mate_repository::TaskRepository;
 use tracing::error;
 
-use crate::{process::hub::Hub, server::run_server, utils::shutdown_signal};
+use crate::process::hub::Hub;
+use crate::server::run_server;
+use crate::utils::shutdown_signal;
 
 #[derive(Debug, Parser)]
 pub enum RunCmd {}
@@ -19,9 +21,10 @@ impl RunCmd {
         let child_processes = hub.spawn_processes().await?;
         let hub = Arc::new(hub);
         let repo = Arc::new(TaskRepository::local().await?);
+        let config = Arc::new(hub.config().to_owned());
 
         tokio::select! {
-            Err(err) = run_server(hub.config(), Arc::clone(&hub), Arc::clone(&repo)) => {
+            Err(err) = run_server(Arc::clone(&config), Arc::clone(&hub), Arc::clone(&repo)) => {
                 error!("Server returned an error. {:#?}", err);
             },
             _ = shutdown_signal() => {
