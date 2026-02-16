@@ -30,11 +30,12 @@ in the future other languages and formats may be supported.
 
 The following task performs an HTTP request to a given URL with given data.
 
-```bash
-just build-task http
-```
+Visit https://github.com/mate-rs/tasks and clone the repository.
 
-This will compile the example HTTP task located at `task/http` into WebAssembly format and copy
+Follow the https://github.com/mate-rs/tasks?tab=readme-ov-file#development guide to setup
+Rust dependencies to build `wasm32-wasip2` target and build the HTTP task.
+
+This will compile the example HTTP task located at `src/http` into WebAssembly format and copy
 the output file to the current directory.
 
 ## Starting the mate server
