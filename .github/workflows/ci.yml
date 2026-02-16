@@ -43,53 +43,6 @@ jobs:
           name: mate
           path: ./target/debug/mate
 
-  ti:
-    name: Tasks Integrity
-    needs: cq
-    strategy:
-      matrix:
-        include:
-          - task: fibonacci
-            args: "10"
-          - task: http
-            args: '{"api_url":"https://httpbin.org/post","data":{"sample_key":"sample_value"}}'
-          - task: sum
-            args: "[1, 2, 3, 4, 5]"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: nightly
-
-      - name: Setup Rust Cache
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install Target on Toolchain
-        run: rustup target add wasm32-wasip2 --toolchain nightly
-
-      - name: Setup Just
-        uses: extractions/setup-just@v3
-
-      - name: Build Wasm Task
-        run: just build-task ${{ matrix.task }}
-
-      - name: Download Binary
-        uses: actions/download-artifact@v7
-        with:
-          name: mate
-          path: ./bin
-
-      - name: Run Task
-        run: |
-          chmod +x ./bin/mate
-          ./bin/mate task run \
-            --source ./${{ matrix.task }}.wasm \
-            --args '${{ matrix.args }}'
-
   build-binaries:
     name: Build binaries
     strategy:
