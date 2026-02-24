@@ -1696,6 +1696,7 @@ name = "mate-storage"
 version = "0.0.0-pre.57d9579"
 dependencies = [
  "anyhow",
+ "async-trait",
  "mate",
  "mate-ipc",
  "tokio",

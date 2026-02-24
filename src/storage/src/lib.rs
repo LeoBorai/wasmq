@@ -1,3 +1,5 @@
+mod backend;
+
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
@@ -5,29 +7,29 @@ use std::time::{Duration, SystemTime};
 use anyhow::{Result, bail};
 use tokio::sync::Mutex;
 use tracing::debug;
-use uuid::Uuid;
 
 use mate::proto::job::{Job, JobResult, JobStatus};
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
 
+use crate::backend::Backend;
+use crate::backend::sqlite::SqliteBackend;
+
 const IPC_SENDER_STORAGE: ProcessType = ProcessType::Storage;
 const MAX_JOBS_PER_BATCH: usize = 5;
 
 pub struct Storage {
     ipc: Arc<IpcServer>,
-    jobs: Mutex<HashMap<Uuid, Job>>,
+    backend: Arc<dyn Backend>,
 }
 
 impl Storage {
     pub fn new(transport: Box<dyn Transport>) -> Self {
         let ipc = Arc::new(IpcServer::new(IPC_SENDER_STORAGE, transport));
+        let backend = Arc::new(SqliteBackend::new());
 
-        Self {
-            jobs: Mutex::new(HashMap::new()),
-            ipc,
-        }
+        Self { ipc, backend }
     }
 
     pub async fn run(&mut self) -> Result<()> {
@@ -69,42 +71,21 @@ impl Storage {
     async fn handle_message(&mut self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
             MessagePayload::JobCompleted(id, result) => {
-                debug!(%id, "Job completed");
-                let mut jobs = self.jobs.lock().await;
-
-                if let Some(job) = jobs.get_mut(&id) {
-                    job.attempts += 1;
-                    job.completed_at = Some(SystemTime::now());
-
-                    match &result {
-                        JobResult::Success(_) => {
-                            job.status = JobStatus::Completed;
-                        }
-                        JobResult::Failure(err) => {
-                            if job.attempts < job.max_attempts {
-                                job.status = JobStatus::Scheduled;
-                                job.errors.push(err.to_string());
-                            } else {
-                                job.status = JobStatus::Failed;
-                            }
-                        }
-                    }
-
-                    job.result = Some(result);
-
-                    return Some(MessagePayload::JobStored(Ok(job.clone())));
+                match self.backend.update_job_completed(id, result).await {
+                    Ok(job) => Some(MessagePayload::JobUpdated(Ok(()))),
+                    Err(err) => Some(MessagePayload::JobUpdated(Err(format!(
+                        "Failed to update completion status for job {id}: {err}"
+                    )))),
                 }
-
-                Some(MessagePayload::JobUpdated(Err(format!(
-                    "Failed to update completion status for job {id}: job not found in storage"
-                ))))
             }
             MessagePayload::StoreJob(job) => {
-                let id = job.id;
-                let mut jobs = self.jobs.lock().await;
-                jobs.insert(id, job.clone());
-                drop(jobs);
-                Some(MessagePayload::JobStored(Ok(job)))
+                match self.backend.create_job(job).await {
+                    Ok(job) => Some(MessagePayload::JobStored(Ok(job))),
+                    Err(err) => Some(MessagePayload::JobStored(Err(format!(
+                        "Failed to store job {}: {err}",
+                        job.id
+                    )))),
+                }
             }
             MessagePayload::QueryJobs(query) => {
                 let jobs = self.jobs.lock().await;
