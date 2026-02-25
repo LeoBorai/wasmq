@@ -1,3 +1,4 @@
+use anyhow::Error;
 use rig::client::CompletionClient;
 use rig::completion::Prompt;
 use rig::providers::openrouter::Client;
@@ -21,11 +22,14 @@ async fn prompt_agent(params: Params) -> Result<Response> {
     wstd::runtime::block_on(async move {
         let client: Client = Client::new(params.api_key).unwrap();
         let model = client.agent(params.model).build();
-        let response = model
-            .prompt(params.prompt)
-            .await
-            .expect("Failed to prompt");
 
-        Ok(Response { response })
+        match model
+            .prompt(params.prompt)
+            .await {
+                Ok(response) => Ok(Response { response }),
+                Err(err) => {
+                    return Err(Error::msg(format!("{:?}", err)));
+                }
+            }
     })
 }
