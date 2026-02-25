@@ -1,0 +1,18 @@
+[package]
+name = "agent"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rig-core = { version = "0.31", features = ["wasm"] }
+
+anyhow = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+wit-bindgen = { workspace = true }
+wstd = { workspace = true }
+
+mate-task = { workspace = true }
