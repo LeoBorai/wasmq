@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 
 use mate_ipc::transport::Transport;
@@ -8,10 +10,9 @@ pub struct StorageProcess {
 }
 
 impl StorageProcess {
-    pub fn new(transport: Box<dyn Transport>) -> Self {
-        let storage = Storage::new(transport);
-
-        Self { storage }
+    pub async fn new(transport: Box<dyn Transport>, home: PathBuf) -> Result<Self> {
+        let storage = Storage::new(transport, home).await?;
+        Ok(Self { storage })
     }
 
     pub async fn run(&mut self) -> Result<()> {

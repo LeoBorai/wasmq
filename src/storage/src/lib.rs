@@ -1,14 +1,11 @@
 mod backend;
 
-use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 use anyhow::{Result, bail};
-use tokio::sync::Mutex;
-use tracing::debug;
 
-use mate::proto::job::{Job, JobResult, JobStatus};
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
@@ -25,11 +22,12 @@ pub struct Storage {
 }
 
 impl Storage {
-    pub fn new(transport: Box<dyn Transport>) -> Self {
+    pub async fn new(transport: Box<dyn Transport>, home: PathBuf) -> Result<Self> {
         let ipc = Arc::new(IpcServer::new(IPC_SENDER_STORAGE, transport));
-        let backend = Arc::new(SqliteBackend::new());
+        let home = home.join("storage.db");
+        let backend = Arc::new(SqliteBackend::new(home.to_str().unwrap()).await?);
 
-        Self { ipc, backend }
+        Ok(Self { ipc, backend })
     }
 
     pub async fn run(&mut self) -> Result<()> {
@@ -72,51 +70,32 @@ impl Storage {
         match msg.payload {
             MessagePayload::JobCompleted(id, result) => {
                 match self.backend.update_job_completed(id, result).await {
-                    Ok(job) => Some(MessagePayload::JobUpdated(Ok(()))),
+                    Ok(_job) => Some(MessagePayload::JobUpdated(Ok(()))),
                     Err(err) => Some(MessagePayload::JobUpdated(Err(format!(
                         "Failed to update completion status for job {id}: {err}"
                     )))),
                 }
             }
-            MessagePayload::StoreJob(job) => {
-                match self.backend.create_job(job).await {
-                    Ok(job) => Some(MessagePayload::JobStored(Ok(job))),
-                    Err(err) => Some(MessagePayload::JobStored(Err(format!(
-                        "Failed to store job {}: {err}",
-                        job.id
-                    )))),
-                }
-            }
-            MessagePayload::QueryJobs(query) => {
-                let jobs = self.jobs.lock().await;
-                let jobs_clone = jobs.clone();
-                drop(jobs);
-                let jobs: Vec<Job> = jobs_clone
-                    .values()
-                    .filter(|j| query.status.as_ref().is_none_or(|s| &j.status == s))
-                    .filter(|j| {
-                        query.time_range.as_ref().is_none_or(|tr| {
-                            j.scheduled_at >= tr.0 - Duration::from_secs(1)
-                                && j.scheduled_at <= tr.1 + Duration::from_secs(1)
-                        })
-                    })
-                    .cloned()
-                    .collect();
-                Some(MessagePayload::JobsResult(jobs))
-            }
+            MessagePayload::StoreJob(job) => match self.backend.create_job(job.clone()).await {
+                Ok(job) => Some(MessagePayload::JobStored(Ok(job))),
+                Err(err) => Some(MessagePayload::JobStored(Err(format!(
+                    "Failed to store job {}: {err}",
+                    job.id
+                )))),
+            },
+            MessagePayload::QueryJobs(query) => match self.backend.retrieve_jobs(query).await {
+                Ok(jobs) => Some(MessagePayload::JobsResult(jobs)),
+                Err(_err) => Some(MessagePayload::JobsResult(vec![])),
+            },
             MessagePayload::ClaimJobs((_, end)) => {
-                let mut jobs = self.jobs.lock().await;
-                let jobs: Vec<Job> = jobs
-                    .iter_mut()
-                    .filter(|(_, j)| j.status == JobStatus::Scheduled)
-                    .filter(|(_, j)| j.scheduled_at <= end)
-                    .take(MAX_JOBS_PER_BATCH)
-                    .map(|(_, job)| {
-                        job.status = JobStatus::Claimed;
-                        job.clone()
-                    })
-                    .collect();
-                Some(MessagePayload::JobsResult(jobs))
+                match self
+                    .backend
+                    .claim_jobs(MAX_JOBS_PER_BATCH, SystemTime::now(), end)
+                    .await
+                {
+                    Ok(jobs) => Some(MessagePayload::JobsResult(jobs)),
+                    Err(_err) => Some(MessagePayload::JobsResult(vec![])),
+                }
             }
             MessagePayload::Ping => Some(MessagePayload::Pong),
             MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
