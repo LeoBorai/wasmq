@@ -145,7 +145,9 @@ impl super::Backend for SqliteBackend {
             q = q.bind(status.to_string());
         }
         if let Some((start, end)) = query.time_range {
-            q = q.bind(into_unix_timestamp(start)?).bind(into_unix_timestamp(end)?);
+            q = q
+                .bind(into_unix_timestamp(start)?)
+                .bind(into_unix_timestamp(end)?);
         }
 
         let records = q.fetch_all(&self.pool).await?;
@@ -161,15 +163,13 @@ impl super::Backend for SqliteBackend {
         let result_json = serde_json::to_string(&result)?;
         let completed_at = into_unix_timestamp(SystemTime::now())?;
 
-        sqlx::query(
-            "UPDATE jobs SET status = ?, result = ?, completed_at = ? WHERE id = ?",
-        )
-        .bind(status)
-        .bind(result_json)
-        .bind(completed_at)
-        .bind(id)
-        .execute(&self.pool)
-        .await?;
+        sqlx::query("UPDATE jobs SET status = ?, result = ?, completed_at = ? WHERE id = ?")
+            .bind(status)
+            .bind(result_json)
+            .bind(completed_at)
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
 
         Ok(())
     }
@@ -215,7 +215,7 @@ fn into_unix_timestamp(time: SystemTime) -> Result<i64> {
 }
 
 fn into_system_time(timestamp: i64) -> Result<SystemTime> {
-    Ok(SystemTime::UNIX_EPOCH
+    SystemTime::UNIX_EPOCH
         .checked_add(Duration::from_secs(timestamp as u64))
-        .context("Invalid timestamp")?)
+        .context("Invalid timestamp")
 }
