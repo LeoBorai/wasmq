@@ -202,7 +202,7 @@ impl super::Backend for SqliteBackend {
             WHERE id IN (
                 SELECT id FROM jobs
                 WHERE (scheduled_at BETWEEN ? AND ?)
-                OR (scheduled_at <= ? AND status != 'success' AND attempts < max_attempts)
+                OR (scheduled_at <= ? AND status != 'completed' AND attempts < max_attempts)
                 AND status != 'completed' AND attempts < max_attempts
                 LIMIT ?
             ) RETURNING *
