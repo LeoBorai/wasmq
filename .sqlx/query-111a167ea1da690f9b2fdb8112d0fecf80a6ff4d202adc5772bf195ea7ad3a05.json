@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n            INSERT INTO jobs (\n                id,\n                name,\n                args,\n                status,\n                scheduled_at,\n                task,\n                started_at,\n                completed_at\n            ) VALUES (\n                $1,\n                $2,\n                $3,\n                $4,\n                $5,\n                $6,\n                $7,\n                $8\n            ) RETURNING *",
+  "query": "\n            INSERT INTO jobs (\n                id,\n                name,\n                args,\n                status,\n                scheduled_at,\n                task,\n                started_at,\n                completed_at,\n                max_attempts\n            ) VALUES (\n                $1,\n                $2,\n                $3,\n                $4,\n                $5,\n                $6,\n                $7,\n                $8,\n                $9\n            ) RETURNING *",
   "describe": {
     "columns": [
       {
@@ -65,7 +65,7 @@
       }
     ],
     "parameters": {
-      "Right": 8
+      "Right": 9
     },
     "nullable": [
       false,
@@ -82,5 +82,5 @@
       false
     ]
   },
-  "hash": "ad36629d0f34f5d236818a2ad2a236cf5dc9c1c33cec41a5325cd954000f3e1a"
+  "hash": "111a167ea1da690f9b2fdb8112d0fecf80a6ff4d202adc5772bf195ea7ad3a05"
 }

@@ -91,6 +91,7 @@ impl super::Backend for SqliteBackend {
         let task = job.task.to_string();
         let status = job.status.to_string();
         let scheduled_at = into_unix_timestamp(job.scheduled_at)?;
+        let max_attempts = job.max_attempts as i64;
         let record = sqlx::query_as!(
             JobRecord,
             r#"
@@ -102,7 +103,8 @@ impl super::Backend for SqliteBackend {
                 scheduled_at,
                 task,
                 started_at,
-                completed_at
+                completed_at,
+                max_attempts
             ) VALUES (
                 $1,
                 $2,
@@ -111,7 +113,8 @@ impl super::Backend for SqliteBackend {
                 $5,
                 $6,
                 $7,
-                $8
+                $8,
+                $9
             ) RETURNING *"#,
             id,
             job.name,
@@ -121,6 +124,7 @@ impl super::Backend for SqliteBackend {
             task,
             Option::<i64>::None,
             Option::<i64>::None,
+            max_attempts,
         )
         .fetch_one(&self.pool)
         .await?;
