@@ -160,29 +160,45 @@ impl super::Backend for SqliteBackend {
 
     async fn update_job_completed(&self, id: Uuid, result: JobResult) -> Result<()> {
         let id = id.to_string();
-        let status = match &result {
-            JobResult::Success(_) => "completed",
-            JobResult::Failure(_) => "failed",
-        };
         let result_json = serde_json::to_string(&result)?;
         let completed_at = into_unix_timestamp(SystemTime::now())?;
 
-        sqlx::query(
-            r#"UPDATE jobs
-                SET
-                    status = ?,
-                    result = ?,
-                    completed_at = ?,
-                    attempts = attempts + 1
-                WHERE
-                    id = ?"#,
-        )
-        .bind(status)
-        .bind(result_json)
-        .bind(completed_at)
-        .bind(id)
-        .execute(&self.pool)
-        .await?;
+        match &result {
+            JobResult::Success(_) => {
+                sqlx::query(
+                    r#"UPDATE jobs
+                        SET
+                            status = 'completed',
+                            result = ?,
+                            completed_at = ?,
+                            attempts = attempts + 1
+                        WHERE id = ?"#,
+                )
+                .bind(result_json)
+                .bind(completed_at)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+            }
+            JobResult::Failure(error) => {
+                sqlx::query(
+                    r#"UPDATE jobs
+                        SET
+                            status = 'failed',
+                            result = ?,
+                            completed_at = ?,
+                            attempts = attempts + 1,
+                            errors = json_insert(errors, '$[#]', ?)
+                        WHERE id = ?"#,
+                )
+                .bind(result_json)
+                .bind(completed_at)
+                .bind(error)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+            }
+        }
 
         Ok(())
     }
