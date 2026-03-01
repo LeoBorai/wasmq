@@ -48,6 +48,13 @@ docker logout ghcr.io
 
 You can also download precompiled binaries from the [GitHub Releases](https://githeub.com/LeoBorai/mate/releases) page.
 
+## Development
+
+### Pre-requisites
+
+- Rust toolchain (_stable_): Install Rust using [rustup](https://rustup.rs/).
+- SQLx CLI: Use `cargo install sqlx-cli` to install the SQLx CLI tool.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
