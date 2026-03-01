@@ -163,7 +163,15 @@ impl super::Backend for SqliteBackend {
         let result_json = serde_json::to_string(&result)?;
         let completed_at = into_unix_timestamp(SystemTime::now())?;
 
-        sqlx::query("UPDATE jobs SET status = ?, result = ?, completed_at = ? WHERE id = ?")
+        sqlx::query(
+            r#"UPDATE jobs
+                SET
+                    status = ?,
+                    result = ?,
+                    completed_at = ?,
+                    attempts = attempts + 1
+                WHERE
+                    id = ?"#)
             .bind(status)
             .bind(result_json)
             .bind(completed_at)
@@ -189,8 +197,10 @@ impl super::Backend for SqliteBackend {
             SET status = 'claimed'
             WHERE id IN (
                 SELECT id FROM jobs
-                -- WHERE (scheduled_at >= ? AND scheduled_at <= ? OR scheduled_at <= ?)
-                WHERE status = 'scheduled'
+                WHERE (scheduled_at >= ? AND scheduled_at <= ?)
+                OR (scheduled_at <= ? AND status != 'success' AND attempts < max_attempts)
+                AND status != 'completed'
+                AND attempts < max_attempts
                 LIMIT ?
             )
             RETURNING *
