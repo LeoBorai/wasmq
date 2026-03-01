@@ -171,13 +171,14 @@ impl super::Backend for SqliteBackend {
                     completed_at = ?,
                     attempts = attempts + 1
                 WHERE
-                    id = ?"#)
-            .bind(status)
-            .bind(result_json)
-            .bind(completed_at)
-            .bind(id)
-            .execute(&self.pool)
-            .await?;
+                    id = ?"#,
+        )
+        .bind(status)
+        .bind(result_json)
+        .bind(completed_at)
+        .bind(id)
+        .execute(&self.pool)
+        .await?;
 
         Ok(())
     }
@@ -193,17 +194,14 @@ impl super::Backend for SqliteBackend {
         let count = count as i64;
         let records = sqlx::query_as::<_, JobRecord>(
             r#"
-            UPDATE jobs
-            SET status = 'claimed'
+            UPDATE jobs SET status = 'claimed'
             WHERE id IN (
                 SELECT id FROM jobs
-                WHERE (scheduled_at >= ? AND scheduled_at <= ?)
+                WHERE (scheduled_at BETWEEN ? AND ?)
                 OR (scheduled_at <= ? AND status != 'success' AND attempts < max_attempts)
-                AND status != 'completed'
-                AND attempts < max_attempts
+                AND status != 'completed' AND attempts < max_attempts
                 LIMIT ?
-            )
-            RETURNING *
+            ) RETURNING *
             "#,
         )
         .bind(start_ts)
