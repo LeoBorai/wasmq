@@ -91,13 +91,13 @@ pub enum JobStatus {
 impl Display for JobStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status_str = match self {
-            JobStatus::Claimed => "Claimed",
-            JobStatus::Pending => "Pending",
-            JobStatus::Scheduled => "Scheduled",
-            JobStatus::Running => "Running",
-            JobStatus::Completed => "Completed",
-            JobStatus::Failed => "Failed",
-            JobStatus::Cancelled => "Cancelled",
+            JobStatus::Claimed => "claimed",
+            JobStatus::Pending => "pending",
+            JobStatus::Scheduled => "scheduled",
+            JobStatus::Running => "running",
+            JobStatus::Completed => "completed",
+            JobStatus::Failed => "failed",
+            JobStatus::Cancelled => "cancelled",
         };
         write!(f, "{}", status_str)
     }

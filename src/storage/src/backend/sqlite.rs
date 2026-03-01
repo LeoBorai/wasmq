@@ -128,8 +128,28 @@ impl super::Backend for SqliteBackend {
         Ok(record.try_into()?)
     }
 
-    async fn retrieve_jobs(&self, _query: JobQuery) -> Result<Vec<Job>> {
-        Ok(vec![])
+    async fn retrieve_jobs(&self, query: JobQuery) -> Result<Vec<Job>> {
+        let mut sql = String::from("SELECT * FROM jobs WHERE 1=1");
+
+        if query.status.is_some() {
+            sql.push_str(" AND status = ?");
+        }
+
+        if query.time_range.is_some() {
+            sql.push_str(" AND scheduled_at >= ? AND scheduled_at <= ?");
+        }
+
+        let mut q = sqlx::query_as::<_, JobRecord>(&sql);
+
+        if let Some(status) = query.status {
+            q = q.bind(status.to_string());
+        }
+        if let Some((start, end)) = query.time_range {
+            q = q.bind(into_unix_timestamp(start)?).bind(into_unix_timestamp(end)?);
+        }
+
+        let records = q.fetch_all(&self.pool).await?;
+        records.into_iter().map(|r| r.try_into()).collect()
     }
 
     async fn update_job_completed(&self, _id: Uuid, _result: JobResult) -> Result<()> {
