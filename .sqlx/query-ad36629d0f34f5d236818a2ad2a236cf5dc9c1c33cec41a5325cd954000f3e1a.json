@@ -1,0 +1,86 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO jobs (\n                id,\n                name,\n                args,\n                status,\n                scheduled_at,\n                task,\n                started_at,\n                completed_at\n            ) VALUES (\n                $1,\n                $2,\n                $3,\n                $4,\n                $5,\n                $6,\n                $7,\n                $8\n            ) RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "task",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "args",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "status",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "scheduled_at",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "started_at",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "completed_at",
+        "ordinal": 7,
+        "type_info": "Integer"
+      },
+      {
+        "name": "errors",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "result",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "attempts",
+        "ordinal": 10,
+        "type_info": "Integer"
+      },
+      {
+        "name": "max_attempts",
+        "ordinal": 11,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 8
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "ad36629d0f34f5d236818a2ad2a236cf5dc9c1c33cec41a5325cd954000f3e1a"
+}

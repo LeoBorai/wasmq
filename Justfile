@@ -12,6 +12,14 @@ build-task task:
     cd ./task/{{task}} && cargo +nightly build --release --target wasm32-wasip2
     mv ./target/wasm32-wasip2/release/{{task}}.wasm ./{{task}}.wasm
 
+# Runs the DKC
+dkc:
+    docker pull ghcr.io/leoborai/dkc:latest
+    docker run -it --rm \
+        -v $(pwd):/app \
+        -w /app \
+        ghcr.io/leoborai/dkc:latest
+
 # Builds docs into static files (docs/book/)
 docs-build:
     cd ./docs && mdbook build
@@ -45,3 +53,7 @@ docker-run-image: docker-build-image
 # Runs clippy and fmt on the entire workspace
 fmt:
     cargo clippy --fix --workspace --allow-dirty --allow-staged && cargo fmt
+
+# Uses `sqlx` CLI to perform database metadata retrieval
+sqlx-prepare:
+    cargo sqlx prepare --workspace

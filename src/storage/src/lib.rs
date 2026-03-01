@@ -24,7 +24,7 @@ pub struct Storage {
 impl Storage {
     pub async fn new(transport: Box<dyn Transport>, home: PathBuf) -> Result<Self> {
         let ipc = Arc::new(IpcServer::new(IPC_SENDER_STORAGE, transport));
-        let home = home.join("storage.db");
+        let home = home.join("storage.sqlite");
         let backend = Arc::new(SqliteBackend::new(home.to_str().unwrap()).await?);
 
         Ok(Self { ipc, backend })

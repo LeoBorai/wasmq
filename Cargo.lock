@@ -1905,8 +1905,10 @@ version = "0.0.0-pre.57d9579"
 dependencies = [
  "anyhow",
  "async-trait",
+ "chrono",
  "mate",
  "mate-ipc",
+ "serde_json",
  "sqlx",
  "tokio",
  "tracing",
