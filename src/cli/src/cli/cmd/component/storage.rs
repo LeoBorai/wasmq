@@ -1,11 +1,12 @@
+use std::env::home_dir;
 use std::path::PathBuf;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Parser;
+use tracing::debug;
 
 use mate_config::Config;
 use mate_ipc::protocol::ProcessType;
-use tracing::debug;
 
 use crate::{process::storage::StorageProcess, transport::make_transport};
 
@@ -18,8 +19,10 @@ pub struct StorageSpawnOpt {
 impl StorageSpawnOpt {
     pub async fn exec(&self) -> Result<()> {
         let config = Config::from_file(&self.config)?;
+        let mut home = home_dir().context("Failed to get home directory")?;
+        home.push(".mate");
         let transport = make_transport(config.clone(), ProcessType::Storage).await?;
-        let mut storage = StorageProcess::new(transport);
+        let mut storage = StorageProcess::new(transport, home).await?;
 
         debug!("Starting storage process…");
         storage.run().await?;

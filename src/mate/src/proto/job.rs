@@ -11,6 +11,16 @@ use crate::proto::task::TaskIdentifier;
 
 pub type ExecutorId = usize;
 
+pub const JOB_CLAIMED_STATUS: &str = "claimed";
+pub const JOB_PENDING_STATUS: &str = "pending";
+pub const JOB_SCHEDULED_STATUS: &str = "scheduled";
+pub const JOB_RUNNING_STATUS: &str = "running";
+pub const JOB_COMPLETED_STATUS: &str = "completed";
+pub const JOB_FAILED_STATUS: &str = "failed";
+pub const JOB_CANCELLED_STATUS: &str = "cancelled";
+pub const JOB_SUCCESS_RESULT: &str = "success";
+pub const JOB_FAILURE_RESULT: &str = "failure";
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Job {
     pub id: Uuid,
@@ -91,13 +101,13 @@ pub enum JobStatus {
 impl Display for JobStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status_str = match self {
-            JobStatus::Claimed => "Claimed",
-            JobStatus::Pending => "Pending",
-            JobStatus::Scheduled => "Scheduled",
-            JobStatus::Running => "Running",
-            JobStatus::Completed => "Completed",
-            JobStatus::Failed => "Failed",
-            JobStatus::Cancelled => "Cancelled",
+            JobStatus::Claimed => JOB_CLAIMED_STATUS,
+            JobStatus::Pending => JOB_PENDING_STATUS,
+            JobStatus::Scheduled => JOB_SCHEDULED_STATUS,
+            JobStatus::Running => JOB_RUNNING_STATUS,
+            JobStatus::Completed => JOB_COMPLETED_STATUS,
+            JobStatus::Failed => JOB_FAILED_STATUS,
+            JobStatus::Cancelled => JOB_CANCELLED_STATUS,
         };
         write!(f, "{}", status_str)
     }
@@ -108,13 +118,13 @@ impl FromStr for JobStatus {
 
     fn from_str(input: &str) -> Result<JobStatus, Self::Err> {
         match input.to_ascii_lowercase().as_str() {
-            "claimed" => Ok(JobStatus::Claimed),
-            "pending" => Ok(JobStatus::Pending),
-            "scheduled" => Ok(JobStatus::Scheduled),
-            "running" => Ok(JobStatus::Running),
-            "completed" => Ok(JobStatus::Completed),
-            "failed" => Ok(JobStatus::Failed),
-            "cancelled" => Ok(JobStatus::Cancelled),
+            JOB_CLAIMED_STATUS => Ok(JobStatus::Claimed),
+            JOB_PENDING_STATUS => Ok(JobStatus::Pending),
+            JOB_SCHEDULED_STATUS => Ok(JobStatus::Scheduled),
+            JOB_RUNNING_STATUS => Ok(JobStatus::Running),
+            JOB_COMPLETED_STATUS => Ok(JobStatus::Completed),
+            JOB_FAILED_STATUS => Ok(JobStatus::Failed),
+            JOB_CANCELLED_STATUS => Ok(JobStatus::Cancelled),
             _ => bail!(
                 "The value {} doesn't correspond to a valid JobStatus",
                 input
@@ -132,8 +142,8 @@ pub enum JobResult {
 impl Display for JobResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            JobResult::Success(_) => write!(f, "Success"),
-            JobResult::Failure(_) => write!(f, "Failure"),
+            JobResult::Success(_) => write!(f, "{}", JOB_SUCCESS_RESULT),
+            JobResult::Failure(_) => write!(f, "{}", JOB_FAILURE_RESULT),
         }
     }
 }
