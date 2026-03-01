@@ -217,9 +217,14 @@ impl super::Backend for SqliteBackend {
             UPDATE jobs SET status = 'claimed'
             WHERE id IN (
                 SELECT id FROM jobs
-                WHERE (scheduled_at BETWEEN ? AND ?)
-                OR (scheduled_at <= ? AND status != 'completed' AND attempts < max_attempts)
-                AND status != 'completed' AND attempts < max_attempts
+                WHERE
+                    status IN ('pending')
+                    AND attempts < max_attempts
+                    AND (
+                        scheduled_at BETWEEN ? AND ?
+                        OR scheduled_at <= ?
+                    )
+                ORDER BY scheduled_at
                 LIMIT ?
             ) RETURNING *
             "#,
