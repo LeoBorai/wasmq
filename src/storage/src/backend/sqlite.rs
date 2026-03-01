@@ -152,17 +152,58 @@ impl super::Backend for SqliteBackend {
         records.into_iter().map(|r| r.try_into()).collect()
     }
 
-    async fn update_job_completed(&self, _id: Uuid, _result: JobResult) -> Result<()> {
+    async fn update_job_completed(&self, id: Uuid, result: JobResult) -> Result<()> {
+        let id = id.to_string();
+        let status = match &result {
+            JobResult::Success(_) => "completed",
+            JobResult::Failure(_) => "failed",
+        };
+        let result_json = serde_json::to_string(&result)?;
+        let completed_at = into_unix_timestamp(SystemTime::now())?;
+
+        sqlx::query(
+            "UPDATE jobs SET status = ?, result = ?, completed_at = ? WHERE id = ?",
+        )
+        .bind(status)
+        .bind(result_json)
+        .bind(completed_at)
+        .bind(id)
+        .execute(&self.pool)
+        .await?;
+
         Ok(())
     }
 
     async fn claim_jobs(
         &self,
-        _count: usize,
-        _start: SystemTime,
-        _end: SystemTime,
+        count: usize,
+        start: SystemTime,
+        end: SystemTime,
     ) -> Result<Vec<Job>> {
-        Ok(vec![])
+        let start_ts = into_unix_timestamp(start)?;
+        let end_ts = into_unix_timestamp(end)?;
+        let count = count as i64;
+        let records = sqlx::query_as::<_, JobRecord>(
+            r#"
+            UPDATE jobs
+            SET status = 'claimed'
+            WHERE id IN (
+                SELECT id FROM jobs
+                -- WHERE (scheduled_at >= ? AND scheduled_at <= ? OR scheduled_at <= ?)
+                WHERE status = 'scheduled'
+                LIMIT ?
+            )
+            RETURNING *
+            "#,
+        )
+        .bind(start_ts)
+        .bind(end_ts)
+        .bind(start_ts)
+        .bind(count)
+        .fetch_all(&self.pool)
+        .await?;
+
+        records.into_iter().map(|r| r.try_into()).collect()
     }
 }
 
