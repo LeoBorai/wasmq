@@ -218,7 +218,7 @@ impl super::Backend for SqliteBackend {
             WHERE id IN (
                 SELECT id FROM jobs
                 WHERE
-                    status IN ('pending')
+                    status IN ('scheduled', 'failed')
                     AND attempts < max_attempts
                     AND (
                         scheduled_at BETWEEN ? AND ?
