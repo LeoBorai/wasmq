@@ -1,9 +1,9 @@
 use anyhow::{Context, Result};
 use bytes::Bytes;
 use serde_json::Value;
-use wasmtime::component::{Component, Linker, ResourceTable};
+use wasmtime::component::{Component, Linker};
 use wasmtime::{Config, Engine, Store};
-use wasmtime_wasi::{WasiCtx, WasiCtxView, WasiView};
+use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
 use wasmtime_wasi_http::{WasiHttpCtx, WasiHttpView};
 
 const HANDLER_FUNC_FQN: &str = "handler";
@@ -44,7 +44,7 @@ impl WasmtimeRuntime {
     pub async fn execute(self, wasm_module: Bytes, input: Bytes) -> Result<Value> {
         let mut config = Config::new();
         config
-            .async_support(true)
+            .wasm_component_model_async(true)
             .wasm_component_model(true)
             .wasm_component_model_async(true)
             .wasm_component_model_async_builtins(true);
@@ -67,8 +67,7 @@ impl WasmtimeRuntime {
         let component = Component::from_binary(&engine, &wasm_module)?;
         let instance = linker.instantiate_async(&mut store, &component).await?;
         let func = instance
-            .get_typed_func::<(String,), (Result<String, String>,)>(&mut store, HANDLER_FUNC_FQN)
-            .context(format!("Function '{HANDLER_FUNC_FQN}' not found"))?;
+            .get_typed_func::<(String,), (Result<String, String>,)>(&mut store, HANDLER_FUNC_FQN)?;
         let (result,) = func.call_async(&mut store, (json,)).await?;
 
         match result {
