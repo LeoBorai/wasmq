@@ -10,7 +10,9 @@ use mate::proto::job::{Job, JobResult};
 use mate::proto::task::TaskIdentifier;
 use mate_executor::Executor;
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{
+    ExecutorMessage, Message, MessagePayload, ProcessType, SchedulerMessage, SystemMessage,
+};
 use mate_ipc::transport::Transport;
 use mate_repository::TaskRepository;
 
@@ -94,7 +96,7 @@ impl ExecutorProcess {
                     .request(Message::new(
                         process_type,
                         ProcessType::Storage,
-                        MessagePayload::JobCompleted(
+                        ExecutorMessage::JobCompleted(
                             job_id,
                             JobResult::Failure(format!("Task load failed: {}", err)),
                         ),
@@ -126,7 +128,7 @@ impl ExecutorProcess {
                 .request(Message::new(
                     process_type,
                     ProcessType::Storage,
-                    MessagePayload::JobCompleted(job_id, job_result),
+                    ExecutorMessage::JobCompleted(job_id, job_result),
                 ))
                 .await
             {
@@ -167,12 +169,16 @@ impl ExecutorProcess {
 
     async fn handle_message(&self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
-            MessagePayload::ExecuteJob(job) => match self.execute(job.clone()).await {
-                Ok(()) => Some(MessagePayload::JobAccepted(job.id)),
-                Err(err) => Some(MessagePayload::JobFailed(job.id, err.to_string())),
-            },
-            MessagePayload::Ping => Some(MessagePayload::Pong),
-            MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
+            MessagePayload::Scheduler(SchedulerMessage::ExecuteJob(job)) => {
+                match self.execute(*job.clone()).await {
+                    Ok(()) => Some(ExecutorMessage::JobAccepted(job.id).into()),
+                    Err(err) => Some(ExecutorMessage::JobFailed(job.id, err.to_string()).into()),
+                }
+            }
+            MessagePayload::System(SystemMessage::Ping) => Some(SystemMessage::Pong.into()),
+            MessagePayload::System(SystemMessage::Shutdown) => {
+                Some(SystemMessage::ShutdownAck.into())
+            }
             _ => None,
         }
     }

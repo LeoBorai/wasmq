@@ -5,7 +5,7 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use mate::proto::job::{Job, JobQuery, JobStatus};
-use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{HubMessage, Message, MessagePayload, ProcessType, StorageMessage};
 
 use crate::server::api::v0::ApiError;
 use crate::server::state::SharedServices;
@@ -24,10 +24,11 @@ pub async fn handler(
         id: Uuid::new_v4(),
         from: ProcessType::Hub,
         to: ProcessType::Storage,
-        payload: MessagePayload::QueryJobs(JobQuery {
+        payload: HubMessage::QueryJobs(JobQuery {
             status: query.status,
             time_range: None,
-        }),
+        })
+        .into(),
         reply_to: None,
     };
 
@@ -42,7 +43,7 @@ pub async fn handler(
         })?;
 
     match response.payload {
-        MessagePayload::JobsResult(jobs) => {
+        MessagePayload::Storage(StorageMessage::JobsResult(jobs)) => {
             if let Some(id) = query.id {
                 let jobs: Vec<Job> = jobs.into_iter().filter(|job| job.id == id).collect();
                 return Ok(Json(jobs));

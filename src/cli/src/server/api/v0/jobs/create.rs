@@ -6,7 +6,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use mate::proto::job::Job;
-use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{HubMessage, Message, MessagePayload, ProcessType, StorageMessage};
 
 use crate::server::api::v0::ApiError;
 use crate::server::state::SharedServices;
@@ -45,7 +45,7 @@ pub async fn handler(
     let msg = Message::new(
         ProcessType::Hub,
         ProcessType::Storage,
-        MessagePayload::StoreJob(job.clone()),
+        HubMessage::StoreJob(Box::new(job.clone())),
     );
 
     let message = services
@@ -60,11 +60,13 @@ pub async fn handler(
         })?;
 
     match message.payload {
-        MessagePayload::JobStored(Ok(job)) => Ok(Json(job)),
-        MessagePayload::JobStored(Err(message)) => Err(ApiError {
-            status: StatusCode::INTERNAL_SERVER_ERROR,
-            message,
-        }),
+        MessagePayload::Storage(StorageMessage::JobStored(result)) => match *result {
+            Ok(job) => Ok(Json(job)),
+            Err(message) => Err(ApiError {
+                status: StatusCode::INTERNAL_SERVER_ERROR,
+                message,
+            }),
+        },
         _ => Err(ApiError {
             status: StatusCode::INTERNAL_SERVER_ERROR,
             message: String::from("Unexpected response from storage service"),

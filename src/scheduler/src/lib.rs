@@ -9,7 +9,10 @@ use tracing::{debug, error, warn};
 
 use mate::proto::job::{Job, JobStatus};
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{
+    HubMessage, Message, MessagePayload, ProcessType, SchedulerMessage, StorageMessage,
+    SystemMessage,
+};
 use mate_ipc::transport::Transport;
 
 const IPC_SENDER_SCHEDULER: ProcessType = ProcessType::Scheduler;
@@ -112,12 +115,13 @@ impl Scheduler {
         let request = Message::new(
             IPC_SENDER_SCHEDULER,
             ProcessType::Storage,
-            MessagePayload::ClaimJobs((now, future)),
+            SchedulerMessage::ClaimJobs((now, future)),
         );
 
         match self.ipc.request(request).await {
             Ok(response) => {
-                if let MessagePayload::JobsResult(jobs) = response.payload {
+                if let MessagePayload::Storage(StorageMessage::JobsResult(jobs)) = response.payload
+                {
                     let mut queue = self.queue.lock().await;
 
                     for job in jobs {
@@ -150,14 +154,14 @@ impl Scheduler {
             .send(Message::new(
                 IPC_SENDER_SCHEDULER,
                 ProcessType::Storage,
-                MessagePayload::UpdateJobStatus(job_id, JobStatus::Pending),
+                MessagePayload::Hub(HubMessage::UpdateJobStatus(job_id, JobStatus::Pending)),
             ))
             .await?;
 
         let msg = Message::new(
             IPC_SENDER_SCHEDULER,
             ProcessType::Executor(executor_id),
-            MessagePayload::ExecuteJob(job),
+            SchedulerMessage::ExecuteJob(Box::new(job)),
         );
 
         if let Err(err) = self.ipc.send(msg).await {
@@ -166,7 +170,7 @@ impl Scheduler {
                 .send(Message::new(
                     IPC_SENDER_SCHEDULER,
                     ProcessType::Storage,
-                    MessagePayload::UpdateJobStatus(job_id, JobStatus::Scheduled),
+                    MessagePayload::Hub(HubMessage::UpdateJobStatus(job_id, JobStatus::Scheduled)),
                 ))
                 .await?;
             bail!("Failed to send message to dispatch job via IPC. {:?}", err);
@@ -205,8 +209,11 @@ impl Scheduler {
 
     async fn handle_message(&self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
-            MessagePayload::Ping => Some(MessagePayload::Pong),
-            MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
+            MessagePayload::System(message) => match message {
+                SystemMessage::Ping => Some(SystemMessage::Pong.into()),
+                SystemMessage::Shutdown => Some(SystemMessage::ShutdownAck.into()),
+                _ => None,
+            },
             _ => None,
         }
     }

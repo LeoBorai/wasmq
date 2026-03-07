@@ -7,7 +7,10 @@ use std::time::SystemTime;
 use anyhow::{Result, bail};
 
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{
+    ExecutorMessage, HubMessage, Message, MessagePayload, ProcessType, SchedulerMessage,
+    StorageMessage, SystemMessage,
+};
 use mate_ipc::transport::Transport;
 
 use crate::backend::Backend;
@@ -68,37 +71,49 @@ impl Storage {
 
     async fn handle_message(&mut self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
-            MessagePayload::JobCompleted(id, result) => {
-                match self.backend.update_job_completed(id, result).await {
-                    Ok(_job) => Some(MessagePayload::JobUpdated(Ok(()))),
-                    Err(err) => Some(MessagePayload::JobUpdated(Err(format!(
-                        "Failed to update completion status for job {id}: {err}"
-                    )))),
+            MessagePayload::Hub(HubMessage::StoreJob(job)) => {
+                match self.backend.create_job(*job.clone()).await {
+                    Ok(job) => Some(StorageMessage::JobStored(Box::new(Ok(job))).into()),
+                    Err(err) => Some(
+                        StorageMessage::JobStored(Box::new(Err(format!(
+                            "Failed to store job {}: {err}",
+                            job.id
+                        ))))
+                        .into(),
+                    ),
                 }
             }
-            MessagePayload::StoreJob(job) => match self.backend.create_job(job.clone()).await {
-                Ok(job) => Some(MessagePayload::JobStored(Ok(job))),
-                Err(err) => Some(MessagePayload::JobStored(Err(format!(
-                    "Failed to store job {}: {err}",
-                    job.id
-                )))),
-            },
-            MessagePayload::QueryJobs(query) => match self.backend.retrieve_jobs(query).await {
-                Ok(jobs) => Some(MessagePayload::JobsResult(jobs)),
-                Err(_err) => Some(MessagePayload::JobsResult(vec![])),
-            },
-            MessagePayload::ClaimJobs((_, end)) => {
+            MessagePayload::Hub(HubMessage::QueryJobs(query)) => {
+                match self.backend.retrieve_jobs(query).await {
+                    Ok(jobs) => Some(StorageMessage::JobsResult(jobs).into()),
+                    Err(_) => Some(StorageMessage::JobsResult(vec![]).into()),
+                }
+            }
+            MessagePayload::Executor(ExecutorMessage::JobCompleted(id, result)) => {
+                match self.backend.update_job_completed(id, result).await {
+                    Ok(_) => Some(StorageMessage::JobUpdated(Ok(())).into()),
+                    Err(err) => Some(
+                        StorageMessage::JobUpdated(Err(format!(
+                            "Failed to update completion status for job {id}: {err}"
+                        )))
+                        .into(),
+                    ),
+                }
+            }
+            MessagePayload::Scheduler(SchedulerMessage::ClaimJobs((_, end))) => {
                 match self
                     .backend
                     .claim_jobs(MAX_JOBS_PER_BATCH, SystemTime::now(), end)
                     .await
                 {
-                    Ok(jobs) => Some(MessagePayload::JobsResult(jobs)),
-                    Err(_err) => Some(MessagePayload::JobsResult(vec![])),
+                    Ok(jobs) => Some(StorageMessage::JobsResult(jobs).into()),
+                    Err(_) => Some(StorageMessage::JobsResult(vec![]).into()),
                 }
             }
-            MessagePayload::Ping => Some(MessagePayload::Pong),
-            MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
+            MessagePayload::System(SystemMessage::Ping) => Some(SystemMessage::Pong.into()),
+            MessagePayload::System(SystemMessage::Shutdown) => {
+                Some(SystemMessage::ShutdownAck.into())
+            }
             _ => None,
         }
     }

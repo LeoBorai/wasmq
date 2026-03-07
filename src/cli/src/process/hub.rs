@@ -11,7 +11,7 @@ use tracing::debug;
 
 use mate_config::Config;
 use mate_ipc::channel::IpcServer;
-use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Message, ProcessType, SystemMessage};
 
 use crate::transport::make_transport;
 
@@ -96,7 +96,7 @@ impl Hub {
             .request(Message::new(
                 IPC_SENDER_HUB,
                 ProcessType::Storage,
-                MessagePayload::Ping,
+                SystemMessage::Ping,
             ))
             .await?;
 
@@ -106,7 +106,7 @@ impl Hub {
             .request(Message::new(
                 IPC_SENDER_HUB,
                 ProcessType::Scheduler,
-                MessagePayload::Ping,
+                SystemMessage::Ping,
             ))
             .await?;
 
@@ -117,7 +117,7 @@ impl Hub {
                 .request(Message::new(
                     IPC_SENDER_HUB,
                     ProcessType::Executor(i),
-                    MessagePayload::Ping,
+                    SystemMessage::Ping,
                 ))
                 .await?;
 

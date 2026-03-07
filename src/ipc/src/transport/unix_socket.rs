@@ -296,7 +296,7 @@ mod tests {
     use tempfile::TempDir;
     use tokio::time::sleep;
 
-    use crate::protocol::MessagePayload;
+    use crate::protocol::{MessagePayload, SystemMessage};
 
     use super::*;
 
@@ -318,7 +318,7 @@ mod tests {
             id: Uuid::new_v4(),
             from: ProcessType::Hub,
             to: ProcessType::Storage,
-            payload: MessagePayload::Ping,
+            payload: MessagePayload::System(SystemMessage::Ping),
             reply_to: None,
         };
 
@@ -348,13 +348,13 @@ mod tests {
         tokio::spawn(async move {
             if let Ok(request) = transport2.recv().await {
                 if request.from == ProcessType::Hub
-                    && matches!(request.payload, MessagePayload::Ping)
+                    && matches!(request.payload, MessagePayload::System(SystemMessage::Ping))
                 {
                     let response = Message {
                         id: Uuid::new_v4(),
                         from: ProcessType::Storage,
                         to: request.from,
-                        payload: MessagePayload::Pong,
+                        payload: SystemMessage::Pong.into(),
                         reply_to: Some(request.id),
                     };
                     let _ = transport2.send(response).await;
@@ -367,13 +367,16 @@ mod tests {
             id: Uuid::new_v4(),
             from: ProcessType::Hub,
             to: ProcessType::Storage,
-            payload: MessagePayload::Ping,
+            payload: SystemMessage::Ping.into(),
             reply_to: None,
         };
 
         let response = transport1.request(request).await?;
 
-        assert!(matches!(response.payload, MessagePayload::Pong));
+        assert!(matches!(
+            response.payload,
+            MessagePayload::System(SystemMessage::Pong)
+        ));
 
         Ok(())
     }

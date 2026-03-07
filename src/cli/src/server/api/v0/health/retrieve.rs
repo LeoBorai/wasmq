@@ -1,7 +1,7 @@
 use axum::{Extension, Json};
 use serde::Serialize;
 
-use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use mate_ipc::protocol::{Message, ProcessType, SystemMessage};
 
 use crate::process::hub::IPC_SENDER_HUB;
 use crate::server::api::v0::ApiError;
@@ -23,7 +23,7 @@ pub async fn handler(
         .request(Message::new(
             IPC_SENDER_HUB,
             ProcessType::Storage,
-            MessagePayload::Ping,
+            SystemMessage::Ping,
         ))
         .await
         .is_ok();
@@ -32,7 +32,7 @@ pub async fn handler(
         .request(Message::new(
             IPC_SENDER_HUB,
             ProcessType::Scheduler,
-            MessagePayload::Ping,
+            SystemMessage::Ping,
         ))
         .await
         .is_ok();
@@ -44,7 +44,7 @@ pub async fn handler(
             .request(Message::new(
                 IPC_SENDER_HUB,
                 ProcessType::Executor(i),
-                MessagePayload::Ping,
+                SystemMessage::Ping,
             ))
             .await
             .is_ok()
