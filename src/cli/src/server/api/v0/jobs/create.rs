@@ -45,7 +45,7 @@ pub async fn handler(
     let msg = Message::new(
         ProcessType::Hub,
         ProcessType::Storage,
-        HubMessage::StoreJob(Box::new(job.clone())),
+        HubMessage::StoreJob(Box::new(job)),
     );
 
     let message = services
