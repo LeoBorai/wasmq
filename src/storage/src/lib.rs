@@ -72,12 +72,13 @@ impl Storage {
     async fn handle_message(&mut self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
             MessagePayload::Hub(HubMessage::StoreJob(job)) => {
-                match self.backend.create_job(*job.clone()).await {
+                let job_id = job.id;
+                match self.backend.create_job(*job).await {
                     Ok(job) => Some(StorageMessage::JobStored(Box::new(Ok(job))).into()),
                     Err(err) => Some(
                         StorageMessage::JobStored(Box::new(Err(format!(
                             "Failed to store job {}: {err}",
-                            job.id
+                            job_id
                         ))))
                         .into(),
                     ),
