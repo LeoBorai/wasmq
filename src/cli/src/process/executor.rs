@@ -170,9 +170,13 @@ impl ExecutorProcess {
     async fn handle_message(&self, msg: Message) -> Option<MessagePayload> {
         match msg.payload {
             MessagePayload::Scheduler(SchedulerMessage::ExecuteJob(job)) => {
-                match self.execute(*job.clone()).await {
-                    Ok(()) => Some(ExecutorMessage::JobAccepted(job.id).into()),
-                    Err(err) => Some(ExecutorMessage::JobFailed(job.id, err.to_string()).into()),
+                // Stash the job ID before moving the job out of the Box to avoid cloning the entire Job.
+                let job_id = job.id.clone();
+                let job_unboxed = *job;
+
+                match self.execute(job_unboxed).await {
+                    Ok(()) => Some(ExecutorMessage::JobAccepted(job_id.clone()).into()),
+                    Err(err) => Some(ExecutorMessage::JobFailed(job_id, err.to_string()).into()),
                 }
             }
             MessagePayload::System(SystemMessage::Ping) => Some(SystemMessage::Pong.into()),
