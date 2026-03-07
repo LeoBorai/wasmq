@@ -115,6 +115,15 @@ impl Storage {
             MessagePayload::System(SystemMessage::Shutdown) => {
                 Some(SystemMessage::ShutdownAck.into())
             }
+            MessagePayload::Hub(HubMessage::UpdateJobStatus(update)) => {
+                Some(
+                    StorageMessage::JobUpdated(Err(format!(
+                        "Job status update ignored by storage backend for update: {:?}",
+                        update
+                    )))
+                    .into(),
+                )
+            }
             _ => None,
         }
     }
