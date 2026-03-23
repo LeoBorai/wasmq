@@ -43,7 +43,7 @@ uuid = "1.21"
 wasmtime = "42.0"
 wasmtime-wasi = "42.0"
 wasmtime-wasi-http = "42.0"
-wit-bindgen = "0.53"
+wit-bindgen = "0.54"
 wstd = "0.6"
 
 mate-config = { path = "./src/config" }
