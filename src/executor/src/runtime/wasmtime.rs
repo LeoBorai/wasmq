@@ -5,7 +5,6 @@ use wasmtime::component::{Component, Linker};
 use wasmtime::{Config, Engine, Store};
 use wasmtime_wasi::p2::add_to_linker_async;
 use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
-use wasmtime_wasi_http::WasiHttpCtx;
 use wasmtime_wasi_http::p2::{WasiHttpCtxView, WasiHttpView};
 use wasmtime_wasi_http::p2::{add_only_http_to_linker_async, default_hooks};
 
@@ -15,7 +14,6 @@ pub struct ComponentRunStates {
     pub wasi_ctx: WasiCtx,
     pub wasi_http_ctx: WasiHttpCtx,
     pub resource_table: ResourceTable,
-    pub http_ctx: WasiHttpCtx,
 }
 
 impl WasiView for ComponentRunStates {
@@ -65,7 +63,6 @@ impl WasmtimeRuntime {
         let state = ComponentRunStates {
             wasi_ctx: wasi,
             resource_table: ResourceTable::new(),
-            http_ctx: WasiHttpCtx::new(),
             wasi_http_ctx: WasiHttpCtx::new(),
         };
         let mut store = Store::new(&engine, state);
