@@ -5,6 +5,7 @@ use wasmtime::component::{Component, Linker};
 use wasmtime::{Config, Engine, Store};
 use wasmtime_wasi::p2::add_to_linker_async;
 use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
+use wasmtime_wasi_http::WasiHttpCtx;
 use wasmtime_wasi_http::p2::{WasiHttpCtxView, WasiHttpView};
 use wasmtime_wasi_http::p2::{add_only_http_to_linker_async, default_hooks};
 
