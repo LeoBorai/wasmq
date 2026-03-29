@@ -3,13 +3,17 @@ use bytes::Bytes;
 use serde_json::Value;
 use wasmtime::component::{Component, Linker};
 use wasmtime::{Config, Engine, Store};
+use wasmtime_wasi::p2::add_to_linker_async;
 use wasmtime_wasi::{ResourceTable, WasiCtx, WasiCtxView, WasiView};
-use wasmtime_wasi_http::{WasiHttpCtx, WasiHttpView};
+use wasmtime_wasi_http::WasiHttpCtx;
+use wasmtime_wasi_http::p2::{WasiHttpCtxView, WasiHttpHooks, WasiHttpView};
+use wasmtime_wasi_http::p2::add_only_http_to_linker_async;
 
 const HANDLER_FUNC_FQN: &str = "handler";
 
 pub struct ComponentRunStates {
     pub wasi_ctx: WasiCtx,
+    pub wasi_http_ctx: WasiHttpCtx,
     pub resource_table: ResourceTable,
     pub http_ctx: WasiHttpCtx,
 }
@@ -24,12 +28,12 @@ impl WasiView for ComponentRunStates {
 }
 
 impl WasiHttpView for ComponentRunStates {
-    fn ctx(&mut self) -> &mut WasiHttpCtx {
-        &mut self.http_ctx
-    }
-
-    fn table(&mut self) -> &mut ResourceTable {
-        &mut self.resource_table
+    fn http(&mut self) -> WasiHttpCtxView<'_> {
+        WasiHttpCtxView {
+            ctx: &mut self.wasi_http_ctx,
+            table: &mut self.resource_table,
+            hooks: WasiHttpHooks::default(),
+        }
     }
 }
 
@@ -51,8 +55,8 @@ impl WasmtimeRuntime {
         let engine = Engine::new(&config)?;
         let mut linker = Linker::new(&engine);
 
-        wasmtime_wasi::p2::add_to_linker_async(&mut linker)?;
-        wasmtime_wasi_http::add_only_http_to_linker_async(&mut linker)?;
+        add_to_linker_async(&mut linker)?;
+        add_only_http_to_linker_async(&mut linker)?;
 
         let json_value =
             serde_json::from_slice::<Value>(&input).context("Failed to parse input JSON")?;
@@ -62,6 +66,7 @@ impl WasmtimeRuntime {
             wasi_ctx: wasi,
             resource_table: ResourceTable::new(),
             http_ctx: WasiHttpCtx::new(),
+            wasi_http_ctx: WasiHttpCtx::new(),
         };
         let mut store = Store::new(&engine, state);
         let component = Component::from_binary(&engine, &wasm_module)?;
