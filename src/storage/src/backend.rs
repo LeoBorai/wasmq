@@ -15,6 +15,7 @@ pub trait Backend: Send + Sync {
     async fn update_job_completed(&self, id: Uuid, result: JobResult) -> Result<()>;
     async fn claim_jobs(
         &self,
+        claimed_by: String,
         count: usize,
         start: SystemTime,
         end: SystemTime,

@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS jobs (
       'cancelled'
     )
   ),
+  claimed_at INTEGER,
+  claimed_by TEXT,
   scheduled_at INTEGER NOT NULL,
   started_at INTEGER,
   completed_at INTEGER,
