@@ -19,4 +19,5 @@ pub trait Backend: Send + Sync {
         start: SystemTime,
         end: SystemTime,
     ) -> Result<Vec<Job>>;
+    async fn claim_job(&self, job_id: Uuid, executor_id: usize) -> Result<Job>;
 }
