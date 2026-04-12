@@ -20,6 +20,11 @@ pub enum MessagePayload {
     JobUpdated(Result<(), String>),
 
     // Scheduler -> Storage
+    ClaimJob {
+        executor_id: ExecutorId,
+        job_id: Uuid,
+    },
+    #[warn(deprecated)]
     ClaimJobs((SystemTime, SystemTime)),
 
     // Scheduler -> Executor

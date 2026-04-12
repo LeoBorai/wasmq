@@ -151,5 +151,7 @@ impl Display for JobResult {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JobQuery {
     pub status: Option<JobStatus>,
-    pub time_range: Option<(SystemTime, SystemTime)>,
+    pub min_time: Option<SystemTime>,
+    pub max_time: Option<SystemTime>,
+    pub limit: Option<usize>,
 }

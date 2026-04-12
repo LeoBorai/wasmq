@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, warn};
 
-use mate::proto::job::{Job, JobStatus};
+use mate::proto::job::{Job, JobQuery, JobStatus};
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
@@ -17,6 +17,7 @@ const CHECK_INTERVAL: Duration = Duration::from_secs(10);
 const LOOKAHEAD_WINDOW: Duration = Duration::from_mins(5);
 const PERIODIC_RELOAD: Duration = Duration::from_secs(30);
 const SLEEP_INTERVAL: Duration = Duration::from_secs(1);
+const MAX_JOBS_PER_BATCH: usize = 10;
 
 pub struct Scheduler {
     ipc: Arc<IpcServer>,
@@ -112,7 +113,12 @@ impl Scheduler {
         let request = Message::new(
             IPC_SENDER_SCHEDULER,
             ProcessType::Storage,
-            MessagePayload::ClaimJobs((now, future)),
+            MessagePayload::QueryJobs(JobQuery {
+                status: Some(JobStatus::Scheduled),
+                max_time: Some(future),
+                min_time: None,
+                limit: Some(MAX_JOBS_PER_BATCH),
+            }),
         );
 
         match self.ipc.request(request).await {
@@ -150,7 +156,10 @@ impl Scheduler {
             .send(Message::new(
                 IPC_SENDER_SCHEDULER,
                 ProcessType::Storage,
-                MessagePayload::UpdateJobStatus(job_id, JobStatus::Pending),
+                MessagePayload::ClaimJob {
+                    executor_id,
+                    job_id,
+                },
             ))
             .await?;
 

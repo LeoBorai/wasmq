@@ -139,8 +139,16 @@ impl super::Backend for SqliteBackend {
             sql.push_str(" AND status = ?");
         }
 
-        if query.time_range.is_some() {
-            sql.push_str(" AND scheduled_at >= ? AND scheduled_at <= ?");
+        if query.min_time.is_some() {
+            sql.push_str(" AND scheduled_at >= ?");
+        }
+
+        if query.max_time.is_some() {
+            sql.push_str(" AND scheduled_at <= ?");
+        }
+
+        if query.limit.is_some() {
+            sql.push_str(" ORDER BY scheduled_at LIMIT ?");
         }
 
         let mut q = sqlx::query_as::<_, JobRecord>(&sql);
@@ -148,10 +156,17 @@ impl super::Backend for SqliteBackend {
         if let Some(status) = query.status {
             q = q.bind(status.to_string());
         }
-        if let Some((start, end)) = query.time_range {
-            q = q
-                .bind(into_unix_timestamp(start)?)
-                .bind(into_unix_timestamp(end)?);
+
+        if let Some(min_time) = query.min_time {
+            q = q.bind(into_unix_timestamp(min_time)?);
+        }
+
+        if let Some(max_time) = query.max_time {
+            q = q.bind(into_unix_timestamp(max_time)?);
+        }
+
+        if let Some(limit) = query.limit {
+            q = q.bind(limit as i64);
         }
 
         let records = q.fetch_all(&self.pool).await?;
@@ -237,6 +252,25 @@ impl super::Backend for SqliteBackend {
         .await?;
 
         records.into_iter().map(|r| r.try_into()).collect()
+    }
+
+    async fn claim_job(&self, job_id: Uuid, _: usize) -> Result<Job> {
+        sqlx::query_as::<_, JobRecord>(
+            r#"
+            UPDATE jobs SET status = 'claimed'
+            WHERE
+                id = ?
+                AND status IN ('scheduled', 'failed')
+                AND attempts < max_attempts
+            ORDER BY scheduled_at
+            LIMIT 1
+            RETURNING *
+            "#,
+        )
+        .bind(job_id.to_string())
+        .fetch_one(&self.pool)
+        .await?
+        .try_into()
     }
 }
 

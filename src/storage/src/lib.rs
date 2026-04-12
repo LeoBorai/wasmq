@@ -9,6 +9,7 @@ use anyhow::{Result, bail};
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
+use tracing::error;
 
 use crate::backend::Backend;
 use crate::backend::sqlite::SqliteBackend;
@@ -86,6 +87,16 @@ impl Storage {
             MessagePayload::QueryJobs(query) => match self.backend.retrieve_jobs(query).await {
                 Ok(jobs) => Some(MessagePayload::JobsResult(jobs)),
                 Err(_err) => Some(MessagePayload::JobsResult(vec![])),
+            },
+            MessagePayload::ClaimJob {
+                executor_id,
+                job_id,
+            } => match self.backend.claim_job(job_id, executor_id).await {
+                Ok(job) => Some(MessagePayload::JobsResult(vec![job])),
+                Err(err) => {
+                    error!(job_id=?job_id, executor_id=?executor_id, err=?err, "Failed to claim job for executor");
+                    Some(MessagePayload::JobsResult(vec![]))
+                }
             },
             MessagePayload::ClaimJobs((_, end)) => {
                 match self
