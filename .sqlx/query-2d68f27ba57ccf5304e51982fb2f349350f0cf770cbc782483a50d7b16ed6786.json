@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n            INSERT INTO jobs (\n                id,\n                name,\n                args,\n                status,\n                scheduled_at,\n                task,\n                started_at,\n                completed_at,\n                max_attempts\n            ) VALUES (\n                $1,\n                $2,\n                $3,\n                $4,\n                $5,\n                $6,\n                $7,\n                $8,\n                $9\n            ) RETURNING *",
+  "query": "\n            INSERT INTO jobs (\n                id,\n                name,\n                args,\n                status,\n                claimed_at,\n                claimed_by,\n                scheduled_at,\n                task,\n                started_at,\n                completed_at,\n                max_attempts\n            ) VALUES (\n                $1,\n                $2,\n                $3,\n                $4,\n                $5,\n                $6,\n                $7,\n                $8,\n                $9,\n                $10,\n                $11\n            ) RETURNING *",
   "describe": {
     "columns": [
       {
@@ -29,43 +29,53 @@
         "type_info": "Text"
       },
       {
-        "name": "scheduled_at",
+        "name": "claimed_at",
         "ordinal": 5,
         "type_info": "Integer"
       },
       {
-        "name": "started_at",
+        "name": "claimed_by",
         "ordinal": 6,
-        "type_info": "Integer"
+        "type_info": "Text"
       },
       {
-        "name": "completed_at",
+        "name": "scheduled_at",
         "ordinal": 7,
         "type_info": "Integer"
       },
       {
-        "name": "errors",
+        "name": "started_at",
         "ordinal": 8,
+        "type_info": "Integer"
+      },
+      {
+        "name": "completed_at",
+        "ordinal": 9,
+        "type_info": "Integer"
+      },
+      {
+        "name": "errors",
+        "ordinal": 10,
         "type_info": "Text"
       },
       {
         "name": "result",
-        "ordinal": 9,
+        "ordinal": 11,
         "type_info": "Text"
       },
       {
         "name": "attempts",
-        "ordinal": 10,
+        "ordinal": 12,
         "type_info": "Integer"
       },
       {
         "name": "max_attempts",
-        "ordinal": 11,
+        "ordinal": 13,
         "type_info": "Integer"
       }
     ],
     "parameters": {
-      "Right": 9
+      "Right": 11
     },
     "nullable": [
       false,
@@ -73,6 +83,8 @@
       false,
       false,
       false,
+      true,
+      true,
       false,
       true,
       true,
@@ -82,5 +94,5 @@
       false
     ]
   },
-  "hash": "111a167ea1da690f9b2fdb8112d0fecf80a6ff4d202adc5772bf195ea7ad3a05"
+  "hash": "2d68f27ba57ccf5304e51982fb2f349350f0cf770cbc782483a50d7b16ed6786"
 }

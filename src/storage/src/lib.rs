@@ -101,7 +101,12 @@ impl Storage {
             MessagePayload::ClaimJobs((_, end)) => {
                 match self
                     .backend
-                    .claim_jobs(MAX_JOBS_PER_BATCH, SystemTime::now(), end)
+                    .claim_jobs(
+                        String::from("scheduler"),
+                        MAX_JOBS_PER_BATCH,
+                        SystemTime::now(),
+                        end,
+                    )
                     .await
                 {
                     Ok(jobs) => Some(MessagePayload::JobsResult(jobs)),

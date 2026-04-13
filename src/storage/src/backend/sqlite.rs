@@ -14,6 +14,8 @@ pub(crate) struct JobRecord {
     pub name: String,
     pub args: String,
     pub status: String,
+    pub claimed_at: Option<i64>,
+    pub claimed_by: Option<String>,
     pub scheduled_at: i64,
     pub task: String,
     pub started_at: Option<i64>,
@@ -90,6 +92,7 @@ impl super::Backend for SqliteBackend {
         let args = serde_json::to_string(&job.args)?;
         let task = job.task.to_string();
         let status = job.status.to_string();
+        // FIXME: Store as UTC datetime('now') instead of unix timestamp
         let scheduled_at = into_unix_timestamp(job.scheduled_at)?;
         let max_attempts = job.max_attempts as i64;
         let record = sqlx::query_as!(
@@ -100,6 +103,8 @@ impl super::Backend for SqliteBackend {
                 name,
                 args,
                 status,
+                claimed_at,
+                claimed_by,
                 scheduled_at,
                 task,
                 started_at,
@@ -114,12 +119,16 @@ impl super::Backend for SqliteBackend {
                 $6,
                 $7,
                 $8,
-                $9
+                $9,
+                $10,
+                $11
             ) RETURNING *"#,
             id,
             job.name,
             args,
             status,
+            Option::<i64>::None,
+            Option::<String>::None,
             scheduled_at,
             task,
             Option::<i64>::None,
@@ -176,7 +185,6 @@ impl super::Backend for SqliteBackend {
     async fn update_job_completed(&self, id: Uuid, result: JobResult) -> Result<()> {
         let id = id.to_string();
         let result_json = serde_json::to_string(&result)?;
-        let completed_at = into_unix_timestamp(SystemTime::now())?;
 
         match &result {
             JobResult::Success(_) => {
@@ -185,12 +193,11 @@ impl super::Backend for SqliteBackend {
                         SET
                             status = 'completed',
                             result = ?,
-                            completed_at = ?,
+                            completed_at = datetime('now'),
                             attempts = attempts + 1
                         WHERE id = ?"#,
                 )
                 .bind(result_json)
-                .bind(completed_at)
                 .bind(id)
                 .execute(&self.pool)
                 .await?;
@@ -201,13 +208,12 @@ impl super::Backend for SqliteBackend {
                         SET
                             status = 'failed',
                             result = ?,
-                            completed_at = ?,
+                            completed_at = datetime('now'),
                             attempts = attempts + 1,
                             errors = json_insert(errors, '$[#]', ?)
                         WHERE id = ?"#,
                 )
                 .bind(result_json)
-                .bind(completed_at)
                 .bind(error)
                 .bind(id)
                 .execute(&self.pool)
@@ -220,6 +226,7 @@ impl super::Backend for SqliteBackend {
 
     async fn claim_jobs(
         &self,
+        claimed_by: String,
         count: usize,
         start: SystemTime,
         end: SystemTime,
@@ -229,7 +236,12 @@ impl super::Backend for SqliteBackend {
         let count = count as i64;
         let records = sqlx::query_as::<_, JobRecord>(
             r#"
-            UPDATE jobs SET status = 'claimed'
+            UPDATE jobs
+            SET
+                status = 'claimed',
+                claimed_at = datetime('now'),
+                claimed_by = ?,
+                attempts = attempts + 1
             WHERE id IN (
                 SELECT id FROM jobs
                 WHERE
@@ -244,6 +256,7 @@ impl super::Backend for SqliteBackend {
             ) RETURNING *
             "#,
         )
+        .bind(claimed_by)
         .bind(start_ts)
         .bind(end_ts)
         .bind(start_ts)
