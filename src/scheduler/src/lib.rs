@@ -6,6 +6,7 @@ use anyhow::{Result, bail};
 use tokio::sync::Mutex;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, warn};
+use uuid::Uuid;
 
 use mate::proto::job::{Job, JobQuery, JobStatus};
 use mate_ipc::channel::IpcServer;
@@ -152,6 +153,12 @@ impl Scheduler {
         drop(current_executor);
         let job_id = job.id;
 
+        let claimed_by = format!(
+            "scheduler-executor{}-{}",
+            executor_id,
+            Uuid::new_v4()
+        );
+
         self.ipc
             .send(Message::new(
                 IPC_SENDER_SCHEDULER,
@@ -159,6 +166,7 @@ impl Scheduler {
                 MessagePayload::ClaimJob {
                     executor_id,
                     job_id,
+                    claimed_by,
                 },
             ))
             .await?;

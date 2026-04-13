@@ -1,0 +1,2 @@
+ALTER TABLE jobs ADD COLUMN claimed_at TEXT;
+ALTER TABLE jobs ADD COLUMN claimed_by TEXT;

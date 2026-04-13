@@ -91,7 +91,8 @@ impl Storage {
             MessagePayload::ClaimJob {
                 executor_id,
                 job_id,
-            } => match self.backend.claim_job(job_id, executor_id).await {
+                claimed_by,
+            } => match self.backend.claim_job(job_id, claimed_by).await {
                 Ok(job) => Some(MessagePayload::JobsResult(vec![job])),
                 Err(err) => {
                     error!(job_id=?job_id, executor_id=?executor_id, err=?err, "Failed to claim job for executor");

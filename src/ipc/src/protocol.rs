@@ -23,6 +23,7 @@ pub enum MessagePayload {
     ClaimJob {
         executor_id: ExecutorId,
         job_id: Uuid,
+        claimed_by: String,
     },
     #[warn(deprecated)]
     ClaimJobs((SystemTime, SystemTime)),

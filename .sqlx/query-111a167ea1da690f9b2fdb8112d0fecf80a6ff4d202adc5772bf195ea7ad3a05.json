@@ -62,6 +62,16 @@
         "name": "max_attempts",
         "ordinal": 11,
         "type_info": "Integer"
+      },
+      {
+        "name": "claimed_at",
+        "ordinal": 12,
+        "type_info": "Text"
+      },
+      {
+        "name": "claimed_by",
+        "ordinal": 13,
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -79,7 +89,9 @@
       false,
       true,
       false,
-      false
+      false,
+      true,
+      true
     ]
   },
   "hash": "111a167ea1da690f9b2fdb8112d0fecf80a6ff4d202adc5772bf195ea7ad3a05"

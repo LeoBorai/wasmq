@@ -1932,6 +1932,7 @@ dependencies = [
  "mate-ipc",
  "serde_json",
  "sqlx",
+ "tempfile",
  "tokio",
  "tracing",
  "uuid",
