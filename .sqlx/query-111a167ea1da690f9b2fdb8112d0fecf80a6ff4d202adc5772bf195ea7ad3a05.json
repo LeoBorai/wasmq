@@ -39,39 +39,39 @@
         "type_info": "Integer"
       },
       {
-        "name": "completed_at",
+        "name": "claimed_at",
         "ordinal": 7,
         "type_info": "Integer"
       },
       {
-        "name": "errors",
+        "name": "claimed_by",
         "ordinal": 8,
         "type_info": "Text"
       },
       {
-        "name": "result",
+        "name": "completed_at",
         "ordinal": 9,
+        "type_info": "Integer"
+      },
+      {
+        "name": "errors",
+        "ordinal": 10,
+        "type_info": "Text"
+      },
+      {
+        "name": "result",
+        "ordinal": 11,
         "type_info": "Text"
       },
       {
         "name": "attempts",
-        "ordinal": 10,
+        "ordinal": 12,
         "type_info": "Integer"
       },
       {
         "name": "max_attempts",
-        "ordinal": 11,
-        "type_info": "Integer"
-      },
-      {
-        "name": "claimed_at",
-        "ordinal": 12,
-        "type_info": "Text"
-      },
-      {
-        "name": "claimed_by",
         "ordinal": 13,
-        "type_info": "Text"
+        "type_info": "Integer"
       }
     ],
     "parameters": {
@@ -86,12 +86,12 @@
       false,
       true,
       true,
+      true,
+      true,
       false,
       true,
       false,
-      false,
-      true,
-      true
+      false
     ]
   },
   "hash": "111a167ea1da690f9b2fdb8112d0fecf80a6ff4d202adc5772bf195ea7ad3a05"

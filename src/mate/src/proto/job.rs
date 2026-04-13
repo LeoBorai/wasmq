@@ -35,7 +35,7 @@ pub struct Job {
     pub result: Option<JobResult>,
     pub attempts: u32,
     pub max_attempts: u32,
-    pub claimed_at: Option<String>,
+    pub claimed_at: Option<SystemTime>,
     pub claimed_by: Option<String>,
 }
 

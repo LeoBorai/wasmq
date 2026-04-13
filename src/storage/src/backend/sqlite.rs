@@ -22,7 +22,7 @@ pub(crate) struct JobRecord {
     pub result: Option<String>,
     pub attempts: i64,
     pub max_attempts: i64,
-    pub claimed_at: Option<String>,
+    pub claimed_at: Option<i64>,
     pub claimed_by: Option<String>,
 }
 
@@ -37,6 +37,7 @@ impl TryFrom<JobRecord> for Job {
         let scheduled_at = into_system_time(record.scheduled_at)?;
         let completed_at = record.completed_at.map(into_system_time).transpose()?;
         let started_at = record.started_at.map(into_system_time).transpose()?;
+        let claimed_at = record.claimed_at.map(into_system_time).transpose()?;
         let errors: Vec<String> = serde_json::from_str(&record.errors)?;
         let result: Option<JobResult> = record
             .result
@@ -58,7 +59,7 @@ impl TryFrom<JobRecord> for Job {
             result,
             attempts,
             max_attempts,
-            claimed_at: record.claimed_at,
+            claimed_at,
             claimed_by: record.claimed_by,
         })
     }
@@ -225,19 +226,16 @@ impl super::Backend for SqliteBackend {
     async fn claim_job(&self, job_id: Uuid, claimed_by: String) -> Result<Job> {
         sqlx::query_as::<_, JobRecord>(
             r#"
-            BEGIN IMMEDIATE;
             UPDATE jobs
             SET
                 status = 'running',
                 claimed_at = datetime('now'),
-                claimed_by = ?,
-                attempts = attempts + 1
+                claimed_by = ?
             WHERE
                 id = ?
                 AND status IN ('scheduled', 'failed')
                 AND attempts < max_attempts
             RETURNING *;
-            COMMIT;
             "#,
         )
         .bind(claimed_by)
