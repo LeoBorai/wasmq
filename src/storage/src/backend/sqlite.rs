@@ -264,21 +264,19 @@ impl super::Backend for SqliteBackend {
     async fn claim_job(&self, job_id: Uuid, claimed_by: String) -> Result<Job> {
         sqlx::query_as::<_, JobRecord>(
             r#"
+            BEGIN IMMEDIATE;
             UPDATE jobs
             SET
                 status = 'running',
                 claimed_at = datetime('now'),
                 claimed_by = ?,
                 attempts = attempts + 1
-            WHERE id = (
-                SELECT id FROM jobs
-                WHERE
-                    id = ?
-                    AND status IN ('scheduled', 'failed')
-                    AND attempts < max_attempts
-                LIMIT 1
-            )
-            RETURNING *
+            WHERE
+                id = ?
+                AND status IN ('scheduled', 'failed')
+                AND attempts < max_attempts
+            RETURNING *;
+            COMMIT;
             "#,
         )
         .bind(claimed_by)
