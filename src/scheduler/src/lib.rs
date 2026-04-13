@@ -153,11 +153,7 @@ impl Scheduler {
         drop(current_executor);
         let job_id = job.id;
 
-        let claimed_by = format!(
-            "scheduler-executor{}-{}",
-            executor_id,
-            Uuid::new_v4()
-        );
+        let claimed_by = format!("scheduler-executor{}-{}", executor_id, Uuid::new_v4());
 
         self.ipc
             .send(Message::new(

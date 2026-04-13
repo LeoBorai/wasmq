@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   ),
   scheduled_at INTEGER NOT NULL,
   started_at INTEGER,
+  claimed_at TEXT,
+  claimed_by TEXT,
   completed_at INTEGER,
   errors TEXT NOT NULL DEFAULT '[]',
   result TEXT,

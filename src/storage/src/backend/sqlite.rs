@@ -327,13 +327,7 @@ mod tests {
 
     fn make_job() -> Job {
         let task: TaskIdentifier = "test/my-task@0.1.0".parse().expect("task identifier");
-        Job::new(
-            "test-job".to_string(),
-            json!({}),
-            SystemTime::now(),
-            task,
-        )
-        .expect("job")
+        Job::new("test-job".to_string(), json!({}), SystemTime::now(), task).expect("job")
     }
 
     /// Two concurrent workers must never claim the same job.
@@ -353,12 +347,8 @@ mod tests {
         let b1 = Arc::clone(&backend);
         let b2 = Arc::clone(&backend);
 
-        let h1 = tokio::spawn(async move {
-            b1.claim_job(job_id, "worker-1".to_string()).await
-        });
-        let h2 = tokio::spawn(async move {
-            b2.claim_job(job_id, "worker-2".to_string()).await
-        });
+        let h1 = tokio::spawn(async move { b1.claim_job(job_id, "worker-1".to_string()).await });
+        let h2 = tokio::spawn(async move { b2.claim_job(job_id, "worker-2".to_string()).await });
 
         let r1 = h1.await.expect("join h1");
         let r2 = h2.await.expect("join h2");
