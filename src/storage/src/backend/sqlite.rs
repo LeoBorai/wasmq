@@ -222,45 +222,6 @@ impl super::Backend for SqliteBackend {
         Ok(())
     }
 
-    async fn claim_jobs(
-        &self,
-        count: usize,
-        start: SystemTime,
-        end: SystemTime,
-    ) -> Result<Vec<Job>> {
-        let start_ts = into_unix_timestamp(start)?;
-        let end_ts = into_unix_timestamp(end)?;
-        let count = count as i64;
-        let records = sqlx::query_as::<_, JobRecord>(
-            r#"
-            UPDATE jobs SET
-                status = 'running',
-                claimed_at = datetime('now'),
-                attempts = attempts + 1
-            WHERE id IN (
-                SELECT id FROM jobs
-                WHERE
-                    status IN ('scheduled', 'failed')
-                    AND attempts < max_attempts
-                    AND (
-                        scheduled_at BETWEEN ? AND ?
-                        OR scheduled_at <= ?
-                    )
-                ORDER BY scheduled_at
-                LIMIT ?
-            ) RETURNING *
-            "#,
-        )
-        .bind(start_ts)
-        .bind(end_ts)
-        .bind(start_ts)
-        .bind(count)
-        .fetch_all(&self.pool)
-        .await?;
-
-        records.into_iter().map(|r| r.try_into()).collect()
-    }
-
     async fn claim_job(&self, job_id: Uuid, claimed_by: String) -> Result<Job> {
         sqlx::query_as::<_, JobRecord>(
             r#"

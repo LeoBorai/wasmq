@@ -1,5 +1,3 @@
-use std::time::SystemTime;
-
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -25,8 +23,6 @@ pub enum MessagePayload {
         job_id: Uuid,
         claimed_by: String,
     },
-    #[warn(deprecated)]
-    ClaimJobs((SystemTime, SystemTime)),
 
     // Scheduler -> Executor
     ExecuteJob(Job),
