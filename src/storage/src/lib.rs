@@ -2,7 +2,6 @@ mod backend;
 
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::SystemTime;
 
 use anyhow::{Result, bail};
 
@@ -15,7 +14,6 @@ use crate::backend::Backend;
 use crate::backend::sqlite::SqliteBackend;
 
 const IPC_SENDER_STORAGE: ProcessType = ProcessType::Storage;
-const MAX_JOBS_PER_BATCH: usize = 5;
 
 pub struct Storage {
     ipc: Arc<IpcServer>,
@@ -91,23 +89,14 @@ impl Storage {
             MessagePayload::ClaimJob {
                 executor_id,
                 job_id,
-            } => match self.backend.claim_job(job_id, executor_id).await {
+                claimed_by,
+            } => match self.backend.claim_job(job_id, claimed_by.clone()).await {
                 Ok(job) => Some(MessagePayload::JobsResult(vec![job])),
                 Err(err) => {
-                    error!(job_id=?job_id, executor_id=?executor_id, err=?err, "Failed to claim job for executor");
+                    error!(job_id=?job_id, executor_id=?executor_id, claimed_by=?claimed_by, err=?err, "Failed to claim job for executor");
                     Some(MessagePayload::JobsResult(vec![]))
                 }
             },
-            MessagePayload::ClaimJobs((_, end)) => {
-                match self
-                    .backend
-                    .claim_jobs(MAX_JOBS_PER_BATCH, SystemTime::now(), end)
-                    .await
-                {
-                    Ok(jobs) => Some(MessagePayload::JobsResult(jobs)),
-                    Err(_err) => Some(MessagePayload::JobsResult(vec![])),
-                }
-            }
             MessagePayload::Ping => Some(MessagePayload::Pong),
             MessagePayload::Shutdown => Some(MessagePayload::ShutdownAck),
             _ => None,

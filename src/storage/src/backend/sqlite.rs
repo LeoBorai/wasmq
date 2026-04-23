@@ -22,6 +22,8 @@ pub(crate) struct JobRecord {
     pub result: Option<String>,
     pub attempts: i64,
     pub max_attempts: i64,
+    pub claimed_at: Option<i64>,
+    pub claimed_by: Option<String>,
 }
 
 impl TryFrom<JobRecord> for Job {
@@ -35,6 +37,7 @@ impl TryFrom<JobRecord> for Job {
         let scheduled_at = into_system_time(record.scheduled_at)?;
         let completed_at = record.completed_at.map(into_system_time).transpose()?;
         let started_at = record.started_at.map(into_system_time).transpose()?;
+        let claimed_at = record.claimed_at.map(into_system_time).transpose()?;
         let errors: Vec<String> = serde_json::from_str(&record.errors)?;
         let result: Option<JobResult> = record
             .result
@@ -56,6 +59,8 @@ impl TryFrom<JobRecord> for Job {
             result,
             attempts,
             max_attempts,
+            claimed_at,
+            claimed_by: record.claimed_by,
         })
     }
 }
@@ -218,55 +223,22 @@ impl super::Backend for SqliteBackend {
         Ok(())
     }
 
-    async fn claim_jobs(
-        &self,
-        count: usize,
-        start: SystemTime,
-        end: SystemTime,
-    ) -> Result<Vec<Job>> {
-        let start_ts = into_unix_timestamp(start)?;
-        let end_ts = into_unix_timestamp(end)?;
-        let count = count as i64;
-        let records = sqlx::query_as::<_, JobRecord>(
-            r#"
-            UPDATE jobs SET status = 'claimed'
-            WHERE id IN (
-                SELECT id FROM jobs
-                WHERE
-                    status IN ('scheduled', 'failed')
-                    AND attempts < max_attempts
-                    AND (
-                        scheduled_at BETWEEN ? AND ?
-                        OR scheduled_at <= ?
-                    )
-                ORDER BY scheduled_at
-                LIMIT ?
-            ) RETURNING *
-            "#,
-        )
-        .bind(start_ts)
-        .bind(end_ts)
-        .bind(start_ts)
-        .bind(count)
-        .fetch_all(&self.pool)
-        .await?;
-
-        records.into_iter().map(|r| r.try_into()).collect()
-    }
-
-    async fn claim_job(&self, job_id: Uuid, _: usize) -> Result<Job> {
+    async fn claim_job(&self, job_id: Uuid, claimed_by: String) -> Result<Job> {
         sqlx::query_as::<_, JobRecord>(
             r#"
-            UPDATE jobs SET status = 'claimed'
+            UPDATE jobs
+            SET
+                status = 'claimed',
+                claimed_at = CAST(strftime('%s','now') AS INTEGER),
+                claimed_by = ?
             WHERE
                 id = ?
                 AND status IN ('scheduled', 'failed')
                 AND attempts < max_attempts
-            ORDER BY scheduled_at
-            LIMIT 1
-            RETURNING *
+            RETURNING *;
             "#,
         )
+        .bind(claimed_by)
         .bind(job_id.to_string())
         .fetch_one(&self.pool)
         .await?
@@ -285,4 +257,109 @@ fn into_system_time(timestamp: i64) -> Result<SystemTime> {
     SystemTime::UNIX_EPOCH
         .checked_add(Duration::from_secs(timestamp as u64))
         .context("Invalid timestamp")
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+    use std::time::SystemTime;
+
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use mate::proto::job::{Job, JobStatus};
+    use mate::proto::task::TaskIdentifier;
+
+    use super::SqliteBackend;
+    use crate::backend::Backend;
+
+    async fn make_backend() -> (SqliteBackend, tempfile::TempDir) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("test.sqlite");
+        let backend = SqliteBackend::new(path.to_str().unwrap())
+            .await
+            .expect("backend");
+        (backend, dir)
+    }
+
+    fn make_job() -> Job {
+        let task: TaskIdentifier = "test/my-task@0.1.0".parse().expect("task identifier");
+        Job::new("test-job".to_string(), json!({}), SystemTime::now(), task).expect("job")
+    }
+
+    #[tokio::test]
+    async fn concurrent_claim_does_not_duplicate() {
+        let (backend, _dir) = make_backend().await;
+        let backend = Arc::new(backend);
+        let job = make_job();
+        let stored = backend.create_job(job).await.expect("create_job");
+        assert_eq!(stored.status, JobStatus::Scheduled);
+
+        let job_id = stored.id;
+
+        // Spawn two tasks that both try to claim the same job simultaneously.
+        let b1 = Arc::clone(&backend);
+        let b2 = Arc::clone(&backend);
+
+        let h1 = tokio::spawn(async move { b1.claim_job(job_id, "worker-1".to_string()).await });
+        let h2 = tokio::spawn(async move { b2.claim_job(job_id, "worker-2".to_string()).await });
+
+        let r1 = h1.await.expect("join h1");
+        let r2 = h2.await.expect("join h2");
+
+        // Exactly one claim must succeed; the other must fail (no rows matched).
+        let successes = [&r1, &r2].iter().filter(|r| r.is_ok()).count();
+        assert_eq!(
+            successes, 1,
+            "exactly one worker should claim the job, got r1={r1:?} r2={r2:?}"
+        );
+
+        let winner = if r1.is_ok() { r1.unwrap() } else { r2.unwrap() };
+        assert_eq!(
+            winner.status,
+            JobStatus::Claimed,
+            "the winning job must be in 'running' status"
+        );
+        assert_eq!(
+            winner.attempts, 0,
+            "attempts must not be incremented on claim"
+        );
+        assert!(winner.claimed_at.is_some());
+        assert!(winner.claimed_by.is_some());
+    }
+
+    #[tokio::test]
+    async fn attempt_is_not_incremented_on_claim() {
+        let (backend, _dir) = make_backend().await;
+        let job = make_job();
+        let stored = backend.create_job(job).await.expect("create_job");
+        let job_id = stored.id;
+        let claimed = backend
+            .claim_job(job_id, "worker-A".to_string())
+            .await
+            .expect("first claim");
+
+        assert_eq!(claimed.status, JobStatus::Claimed);
+        assert_eq!(claimed.attempts, 0);
+        assert_eq!(claimed.claimed_by.as_deref(), Some("worker-A"));
+        assert!(claimed.claimed_at.is_some());
+    }
+
+    /// claimed_by identity is stored and returned correctly.
+    #[tokio::test]
+    async fn claimed_by_is_stored() {
+        let (backend, _dir) = make_backend().await;
+
+        let job = make_job();
+        let stored = backend.create_job(job).await.expect("create_job");
+
+        let worker_id = format!("scheduler-executor0-{}", Uuid::new_v4());
+        let claimed = backend
+            .claim_job(stored.id, worker_id.clone())
+            .await
+            .expect("claim_job");
+
+        assert_eq!(claimed.claimed_by.as_deref(), Some(worker_id.as_str()));
+        assert!(claimed.claimed_at.is_some());
+    }
 }

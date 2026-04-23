@@ -57,3 +57,7 @@ fmt:
 # Uses `sqlx` CLI to perform database metadata retrieval
 sqlx-prepare:
     cargo sqlx prepare --workspace
+
+# Runs all tests in the workspace using `nextest`
+test:
+    cargo nextest run --workspace --no-fail-fast --all-features

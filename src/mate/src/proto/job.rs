@@ -35,6 +35,8 @@ pub struct Job {
     pub result: Option<JobResult>,
     pub attempts: u32,
     pub max_attempts: u32,
+    pub claimed_at: Option<SystemTime>,
+    pub claimed_by: Option<String>,
 }
 
 impl Job {
@@ -61,6 +63,8 @@ impl Job {
             result: None,
             attempts: 0,
             max_attempts: 3,
+            claimed_at: None,
+            claimed_by: None,
         })
     }
 

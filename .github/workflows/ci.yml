@@ -29,9 +29,6 @@ jobs:
       - name: Run Clippy Check
         run: cargo clippy --all-targets --all-features -- -D warnings
 
-      - name: Run Tests
-        run: cargo test --all-features
-
       - name: Build binary
         run: |
           cargo build
@@ -89,6 +86,38 @@ jobs:
           ./bin/mate task run \
             --source ./${{ matrix.task }}.wasm \
             --args '${{ matrix.args }}'
+
+  tests:
+    name: Run Tests
+    strategy:
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Cargo Binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Install Rust Binaries
+        run: |
+          cargo binstall -y --force cargo-nextest
+          cargo binstall -y --force just
+
+      - name: Run Tests
+        run: just test
 
   build-binaries:
     name: Build binaries

@@ -151,6 +151,7 @@ impl Scheduler {
         *current_executor = (*current_executor + 1) % self.executor_count;
         drop(current_executor);
         let job_id = job.id;
+        let claimed_by = format!("scheduler-executor-{}", executor_id);
 
         self.ipc
             .send(Message::new(
@@ -159,6 +160,7 @@ impl Scheduler {
                 MessagePayload::ClaimJob {
                     executor_id,
                     job_id,
+                    claimed_by,
                 },
             ))
             .await?;
