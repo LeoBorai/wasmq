@@ -228,8 +228,8 @@ impl super::Backend for SqliteBackend {
             r#"
             UPDATE jobs
             SET
-                status = 'running',
-                claimed_at = datetime('now'),
+                status = 'claimed',
+                claimed_at = CAST(strftime('%s','now') AS INTEGER),
                 claimed_by = ?
             WHERE
                 id = ?
@@ -287,13 +287,10 @@ mod tests {
         Job::new("test-job".to_string(), json!({}), SystemTime::now(), task).expect("job")
     }
 
-    /// Two concurrent workers must never claim the same job.
     #[tokio::test]
     async fn concurrent_claim_does_not_duplicate() {
         let (backend, _dir) = make_backend().await;
         let backend = Arc::new(backend);
-
-        // Insert a single scheduled job.
         let job = make_job();
         let stored = backend.create_job(job).await.expect("create_job");
         assert_eq!(stored.status, JobStatus::Scheduled);
@@ -317,30 +314,33 @@ mod tests {
             "exactly one worker should claim the job, got r1={r1:?} r2={r2:?}"
         );
 
-        // The winning job must be in 'running' status with attempts incremented.
         let winner = if r1.is_ok() { r1.unwrap() } else { r2.unwrap() };
-        assert_eq!(winner.status, JobStatus::Running);
-        assert_eq!(winner.attempts, 1);
+        assert_eq!(
+            winner.status,
+            JobStatus::Claimed,
+            "the winning job must be in 'running' status"
+        );
+        assert_eq!(
+            winner.attempts, 0,
+            "attempts must not be incremented on claim"
+        );
         assert!(winner.claimed_at.is_some());
         assert!(winner.claimed_by.is_some());
     }
 
-    /// attempt is incremented and status set to running on claim.
     #[tokio::test]
-    async fn attempt_incremented_on_claim() {
+    async fn attempt_is_not_incremented_on_claim() {
         let (backend, _dir) = make_backend().await;
-
         let job = make_job();
         let stored = backend.create_job(job).await.expect("create_job");
         let job_id = stored.id;
-
         let claimed = backend
             .claim_job(job_id, "worker-A".to_string())
             .await
             .expect("first claim");
 
-        assert_eq!(claimed.status, JobStatus::Running);
-        assert_eq!(claimed.attempts, 1);
+        assert_eq!(claimed.status, JobStatus::Claimed);
+        assert_eq!(claimed.attempts, 0);
         assert_eq!(claimed.claimed_by.as_deref(), Some("worker-A"));
         assert!(claimed.claimed_at.is_some());
     }
