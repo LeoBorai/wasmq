@@ -5,7 +5,7 @@ use std::{cmp::Ordering, str::FromStr};
 use anyhow::{Error, Result, bail};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use uuid::Uuid;
+use ulid::Ulid;
 
 use crate::proto::task::TaskIdentifier;
 
@@ -23,7 +23,7 @@ pub const JOB_FAILURE_RESULT: &str = "failure";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Job {
-    pub id: Uuid,
+    pub id: Ulid,
     pub name: String,
     pub args: Value,
     pub status: JobStatus,
@@ -51,7 +51,7 @@ impl Job {
         }
 
         Ok(Self {
-            id: Uuid::new_v4(),
+            id: Ulid::new(),
             name,
             args,
             status: JobStatus::Scheduled,

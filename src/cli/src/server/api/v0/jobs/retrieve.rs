@@ -2,7 +2,7 @@ use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::{Extension, Json};
 use serde::Deserialize;
-use uuid::Uuid;
+use ulid::Ulid;
 
 use mate::proto::job::{Job, JobQuery, JobStatus};
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
@@ -12,7 +12,7 @@ use crate::server::state::SharedServices;
 
 #[derive(Deserialize)]
 pub struct RetrieveJobsQuery {
-    id: Option<Uuid>,
+    id: Option<Ulid>,
     status: Option<JobStatus>,
 }
 
@@ -21,7 +21,7 @@ pub async fn handler(
     Query(query): Query<RetrieveJobsQuery>,
 ) -> Result<Json<Vec<Job>>, ApiError> {
     let msg = Message {
-        id: Uuid::new_v4(),
+        id: Ulid::new(),
         from: ProcessType::Hub,
         to: ProcessType::Storage,
         payload: MessagePayload::QueryJobs(JobQuery {

@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use async_trait::async_trait;
 use sqlx::FromRow;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
-use uuid::Uuid;
+use ulid::Ulid;
 
 use mate::proto::job::{Job, JobQuery, JobResult};
 
@@ -30,7 +30,7 @@ impl TryFrom<JobRecord> for Job {
     type Error = anyhow::Error;
 
     fn try_from(record: JobRecord) -> Result<Self, Self::Error> {
-        let id = Uuid::parse_str(&record.id)?;
+        let id = Ulid::from_string(&record.id)?;
         let args = serde_json::from_str(&record.args)?;
         let task = record.task.parse()?;
         let status = record.status.parse()?;
@@ -178,7 +178,7 @@ impl super::Backend for SqliteBackend {
         records.into_iter().map(|r| r.try_into()).collect()
     }
 
-    async fn update_job_completed(&self, id: Uuid, result: JobResult) -> Result<()> {
+    async fn update_job_completed(&self, id: Ulid, result: JobResult) -> Result<()> {
         let id = id.to_string();
         let result_json = serde_json::to_string(&result)?;
         let completed_at = into_unix_timestamp(SystemTime::now())?;
@@ -223,7 +223,7 @@ impl super::Backend for SqliteBackend {
         Ok(())
     }
 
-    async fn claim_job(&self, job_id: Uuid, claimed_by: String) -> Result<Job> {
+    async fn claim_job(&self, job_id: Ulid, claimed_by: String) -> Result<Job> {
         sqlx::query_as::<_, JobRecord>(
             r#"
             UPDATE jobs
@@ -265,7 +265,7 @@ mod tests {
     use std::time::SystemTime;
 
     use serde_json::json;
-    use uuid::Uuid;
+    use ulid::Ulid;
 
     use mate::proto::job::{Job, JobStatus};
     use mate::proto::task::TaskIdentifier;
@@ -353,7 +353,7 @@ mod tests {
         let job = make_job();
         let stored = backend.create_job(job).await.expect("create_job");
 
-        let worker_id = format!("scheduler-executor0-{}", Uuid::new_v4());
+        let worker_id = format!("scheduler-executor0-{}", Ulid::new());
         let claimed = backend
             .claim_job(stored.id, worker_id.clone())
             .await

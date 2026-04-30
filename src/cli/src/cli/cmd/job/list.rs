@@ -3,7 +3,7 @@ use std::time::SystemTime;
 use anyhow::Result;
 use clap::Parser;
 use tabled::Tabled;
-use uuid::Uuid;
+use ulid::Ulid;
 
 use mate::client::Client;
 use mate::proto::job::JobStatus;
@@ -12,7 +12,7 @@ use crate::cli::utils::display::print_table;
 
 #[derive(Tabled)]
 struct JobListItem {
-    id: Uuid,
+    id: Ulid,
     name: String,
     status: String,
     task: String,

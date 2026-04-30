@@ -4,7 +4,7 @@ use anyhow::{Result, bail};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use serde_json::Value;
-use uuid::Uuid;
+use ulid::Ulid;
 
 use crate::client::HttpClient;
 use crate::proto::{job::Job, task::TaskIdentifier};
@@ -19,7 +19,7 @@ pub struct CreateJobRequest {
 }
 
 pub struct RetrieveJobsQuery {
-    pub id: Option<Uuid>,
+    pub id: Option<Ulid>,
 }
 
 #[derive(Clone)]
@@ -69,7 +69,7 @@ impl ApiV0Jobs {
         bail!("Request failed with status {}: {}", status, error_text)
     }
 
-    pub async fn find_by_id(&self, id: Uuid) -> Result<Option<Job>> {
+    pub async fn find_by_id(&self, id: Ulid) -> Result<Option<Job>> {
         let request = self.http_client.client.get(format!(
             "{}/api/v0/jobs?id={}",
             self.http_client.base_url, id

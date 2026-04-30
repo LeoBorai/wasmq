@@ -25,7 +25,7 @@ tempfile = { workspace = true }
 tokio = { workspace = true, features = ["macros", "process", "rt-multi-thread", "signal"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
-uuid = { workspace = true, features = ["v4"] }
+ulid = { workspace = true }
 
 mate = { workspace = true }
 mate-config = { workspace = true }

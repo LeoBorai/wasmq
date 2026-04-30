@@ -47,7 +47,7 @@ impl JobNewOpt {
             .await
         {
             Ok(job) => {
-                println!("Job created successfully. ID: {:?}", job.id);
+                println!("{}", job.id.to_string());
             }
             Err(e) => {
                 println!("Failed to create job: {}", e);

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use ulid::Ulid;
 
 use mate::proto::job::{Job, JobQuery, JobResult, JobStatus};
 
@@ -10,7 +10,7 @@ pub enum MessagePayload {
     // Hub -> Storage
     StoreJob(Job),
     QueryJobs(JobQuery),
-    UpdateJobStatus(Uuid, JobStatus),
+    UpdateJobStatus(Ulid, JobStatus),
 
     // Storage -> Hub/Scheduler/Executor
     JobStored(Result<Job, String>),
@@ -20,7 +20,7 @@ pub enum MessagePayload {
     // Scheduler -> Storage
     ClaimJob {
         executor_id: ExecutorId,
-        job_id: Uuid,
+        job_id: Ulid,
         claimed_by: String,
     },
 
@@ -28,12 +28,12 @@ pub enum MessagePayload {
     ExecuteJob(Job),
 
     // Executor -> Storage
-    JobStarted(Uuid),
-    JobCompleted(Uuid, JobResult),
-    JobFailed(Uuid, String),
+    JobStarted(Ulid),
+    JobCompleted(Ulid, JobResult),
+    JobFailed(Ulid, String),
 
     // Executor -> Scheduler (acknowledgment)
-    JobAccepted(Uuid),
+    JobAccepted(Ulid),
 
     // Health checks
     Ping,
@@ -54,17 +54,17 @@ pub enum ProcessType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {
-    pub id: Uuid,
+    pub id: Ulid,
     pub from: ProcessType,
     pub to: ProcessType,
     pub payload: MessagePayload,
-    pub reply_to: Option<Uuid>,
+    pub reply_to: Option<Ulid>,
 }
 
 impl Message {
     pub fn new(from: ProcessType, to: ProcessType, payload: MessagePayload) -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: Ulid::new(),
             from,
             to,
             payload,
@@ -72,7 +72,7 @@ impl Message {
         }
     }
 
-    pub fn reply_to(&mut self, id: Uuid) -> &mut Self {
+    pub fn reply_to(&mut self, id: Ulid) -> &mut Self {
         self.reply_to = Some(id);
         self
     }

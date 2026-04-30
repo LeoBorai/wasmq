@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use anyhow::{Result, bail};
 use reqwest::multipart::{Form, Part};
-use uuid::Uuid;
+use ulid::Ulid;
 
 use crate::client::HttpClient;
 use crate::proto::task::TaskIdentifier;
 
 pub struct RetrieveJobsQuery {
-    pub id: Option<Uuid>,
+    pub id: Option<Ulid>,
 }
 
 #[derive(Clone)]

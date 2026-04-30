@@ -15,7 +15,7 @@ use tokio::sync::oneshot::{Sender, channel};
 use tokio::task::JoinHandle;
 use tokio::time::{sleep, timeout};
 use tracing::debug;
-use uuid::Uuid;
+use ulid::Ulid;
 
 use crate::protocol::{Message, ProcessType};
 use crate::transport::Transport;
@@ -33,7 +33,7 @@ pub struct UnixSocketTransport {
     message_rx: Mutex<UnboundedReceiver<Message>>,
     message_tx: UnboundedSender<Message>,
     /// Registry for pending responses
-    pending_responses: Arc<Mutex<HashMap<Uuid, Sender<Message>>>>,
+    pending_responses: Arc<Mutex<HashMap<Ulid, Sender<Message>>>>,
     listener_handle: Option<JoinHandle<()>>,
 }
 
@@ -124,7 +124,7 @@ impl UnixSocketTransport {
     async fn handle_connection(
         mut stream: UnixStream,
         tx: UnboundedSender<Message>,
-        pending: Arc<Mutex<HashMap<Uuid, Sender<Message>>>>,
+        pending: Arc<Mutex<HashMap<Ulid, Sender<Message>>>>,
     ) -> Result<()> {
         // Message length (4 bytes, little-endian u32)
         let mut len_buf = [0u8; 4];
@@ -315,7 +315,7 @@ mod tests {
 
         // Send message from Hub to Storage
         let msg = Message {
-            id: Uuid::new_v4(),
+            id: Ulid::new(),
             from: ProcessType::Hub,
             to: ProcessType::Storage,
             payload: MessagePayload::Ping,
@@ -351,7 +351,7 @@ mod tests {
                     && matches!(request.payload, MessagePayload::Ping)
                 {
                     let response = Message {
-                        id: Uuid::new_v4(),
+                        id: Ulid::new(),
                         from: ProcessType::Storage,
                         to: request.from,
                         payload: MessagePayload::Pong,
@@ -364,7 +364,7 @@ mod tests {
 
         // Send request from transport1
         let request = Message {
-            id: Uuid::new_v4(),
+            id: Ulid::new(),
             from: ProcessType::Hub,
             to: ProcessType::Storage,
             payload: MessagePayload::Ping,

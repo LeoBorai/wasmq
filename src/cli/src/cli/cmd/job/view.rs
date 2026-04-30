@@ -1,13 +1,13 @@
 use anyhow::Result;
 use clap::Parser;
-use uuid::Uuid;
+use ulid::Ulid;
 
 use mate::client::Client;
 
 #[derive(Debug, Parser)]
 pub struct JobViewOpt {
     /// Job ID
-    id: Uuid,
+    id: Ulid,
 }
 
 impl JobViewOpt {
