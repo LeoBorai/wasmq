@@ -42,7 +42,7 @@ tracing-subscriber = "0.3"
 ulid = "1.2"
 wasmtime = "43.0"
 wasmtime-wasi = "43.0"
-wasmtime-wasi-http = "43.0"
+wasmtime-wasi-http = "44.0"
 wit-bindgen = "0.57"
 wstd = "0.6"
 
