@@ -57,7 +57,7 @@ impl Scheduler {
 
     async fn scheduler(&self) -> Result<()> {
         // preload jobs on startup into our queue
-        self.load_upcoming_jobs().await?;
+        self.load_scheduled_jobs().await?;
 
         loop {
             let mut queue = self.queue.lock().await;
@@ -66,7 +66,7 @@ impl Scheduler {
                 None => {
                     drop(queue);
                     sleep(CHECK_INTERVAL).await;
-                    self.load_upcoming_jobs().await?;
+                    self.load_scheduled_jobs().await?;
                     continue;
                 }
             };
@@ -100,14 +100,18 @@ impl Scheduler {
         loop {
             interval.tick().await;
 
-            if let Err(err) = self.load_upcoming_jobs().await {
+            if let Err(err) = self.load_scheduled_jobs().await {
                 warn!(?err, "Failed to reload jobs from storage");
+            }
+
+            if let Err(err) = self.load_failed_jobs().await {
+                warn!(?err, "Failed to reload failed jobs from storage");
             }
         }
     }
 
     /// Fetches upcoming jobs from Storage and loads them into the queue
-    async fn load_upcoming_jobs(&self) -> Result<()> {
+    async fn load_scheduled_jobs(&self) -> Result<()> {
         let now = SystemTime::now();
         let future = now + LOOKAHEAD_WINDOW;
         let request = Message::new(
@@ -136,7 +140,42 @@ impl Scheduler {
                 }
             }
             Err(err) => {
-                error!(?err, "Failed to load jobs from Storage");
+                error!(?err, "Failed to load (scheduled) jobs from Storage");
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Fetches failed jobs from Storage and loads them into the queue
+    async fn load_failed_jobs(&self) -> Result<()> {
+        let request = Message::new(
+            IPC_SENDER_SCHEDULER,
+            ProcessType::Storage,
+            MessagePayload::QueryJobs(JobQuery {
+                status: Some(JobStatus::Failed),
+                max_time: None,
+                min_time: None,
+                limit: Some(MAX_JOBS_PER_BATCH),
+            }),
+        );
+
+        match self.ipc.request(request).await {
+            Ok(response) => {
+                if let MessagePayload::JobsResult(jobs) = response.payload {
+                    let mut queue = self.queue.lock().await;
+
+                    for job in jobs {
+                        if queue.iter().any(|j| j.id == job.id) {
+                            continue;
+                        }
+
+                        queue.push(job);
+                    }
+                }
+            }
+            Err(err) => {
+                error!(?err, "Failed to load (failed) jobs from Storage");
             }
         }
 
