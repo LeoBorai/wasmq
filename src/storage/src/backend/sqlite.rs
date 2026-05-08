@@ -2,6 +2,7 @@ use std::time::{Duration, SystemTime};
 
 use anyhow::{Context, Result};
 use async_trait::async_trait;
+use serde_json::{Map, Value};
 use sqlx::FromRow;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
 use ulid::Ulid;
@@ -22,6 +23,7 @@ pub(crate) struct JobRecord {
     pub result: Option<String>,
     pub attempts: i64,
     pub max_attempts: i64,
+    pub metadata: String,
     pub claimed_at: Option<i64>,
     pub claimed_by: Option<String>,
 }
@@ -45,6 +47,7 @@ impl TryFrom<JobRecord> for Job {
             .transpose()?;
         let attempts = record.attempts as u32;
         let max_attempts = record.max_attempts as u32;
+        let metadata: Map<String, Value> = serde_json::from_str(&record.metadata)?;
 
         Ok(Job {
             id,
@@ -59,6 +62,7 @@ impl TryFrom<JobRecord> for Job {
             result,
             attempts,
             max_attempts,
+            metadata,
             claimed_at,
             claimed_by: record.claimed_by,
         })
@@ -97,6 +101,7 @@ impl super::Backend for SqliteBackend {
         let status = job.status.to_string();
         let scheduled_at = into_unix_timestamp(job.scheduled_at)?;
         let max_attempts = job.max_attempts as i64;
+        let metadata = serde_json::to_string(&job.metadata)?;
         let record = sqlx::query_as!(
             JobRecord,
             r#"
@@ -109,7 +114,8 @@ impl super::Backend for SqliteBackend {
                 task,
                 started_at,
                 completed_at,
-                max_attempts
+                max_attempts,
+                metadata
             ) VALUES (
                 $1,
                 $2,
@@ -119,7 +125,8 @@ impl super::Backend for SqliteBackend {
                 $6,
                 $7,
                 $8,
-                $9
+                $9,
+                $10
             ) RETURNING *"#,
             id,
             job.name,
@@ -130,6 +137,7 @@ impl super::Backend for SqliteBackend {
             Option::<i64>::None,
             Option::<i64>::None,
             max_attempts,
+            metadata,
         )
         .fetch_one(&self.pool)
         .await?;

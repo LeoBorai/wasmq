@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   result TEXT,
   attempts INTEGER NOT NULL DEFAULT 0,
   max_attempts INTEGER NOT NULL,
+  metadata TEXT NOT NULL DEFAULT '{}',
   CHECK (attempts >= 0),
   CHECK (max_attempts > 0),
   CHECK (attempts <= max_attempts)
