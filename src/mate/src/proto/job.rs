@@ -4,7 +4,7 @@ use std::{cmp::Ordering, str::FromStr};
 
 use anyhow::{Error, Result, bail};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use ulid::Ulid;
 
 use crate::proto::task::TaskIdentifier;
@@ -35,6 +35,7 @@ pub struct Job {
     pub result: Option<JobResult>,
     pub attempts: u32,
     pub max_attempts: u32,
+    pub metadata: Map<String, Value>,
     pub claimed_at: Option<SystemTime>,
     pub claimed_by: Option<String>,
 }
@@ -63,6 +64,7 @@ impl Job {
             result: None,
             attempts: 0,
             max_attempts: 3,
+            metadata: Map::new(),
             claimed_at: None,
             claimed_by: None,
         })
