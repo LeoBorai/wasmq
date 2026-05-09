@@ -7,7 +7,7 @@ use sqlx::FromRow;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
 use ulid::Ulid;
 
-use mate::proto::job::{Job, JobQuery, JobResult};
+use mate::proto::job::{Job, JobQuery, JobResult, JobStatus};
 
 #[derive(Debug, FromRow)]
 pub(crate) struct JobRecord {
@@ -254,19 +254,23 @@ impl super::Backend for SqliteBackend {
     }
 
     async fn cancel_job(&self, job_id: Ulid) -> Result<()> {
+        let cancelled_status = JobStatus::Cancelled.to_string();
+        let scheduled_status = JobStatus::Scheduled.to_string();
         let updated = sqlx::query(
             r#"
             UPDATE jobs
-            SET status = 'cancelled'
-            WHERE id = ? AND status = 'scheduled'
+            SET status = ?
+            WHERE id = ? AND status = ?
             "#,
         )
+        .bind(cancelled_status)
         .bind(job_id.to_string())
+        .bind(scheduled_status)
         .execute(&self.pool)
         .await?;
 
         if updated.rows_affected() == 0 {
-            bail!("Job {job_id} cannot be cancelled");
+            bail!("Job {job_id} does not exist or is not in a cancellable state");
         }
 
         Ok(())
