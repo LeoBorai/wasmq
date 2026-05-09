@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use async_trait::async_trait;
 use serde_json::{Map, Value};
 use sqlx::FromRow;
@@ -252,6 +252,25 @@ impl super::Backend for SqliteBackend {
         .await?
         .try_into()
     }
+
+    async fn cancel_job(&self, job_id: Ulid) -> Result<()> {
+        let updated = sqlx::query(
+            r#"
+            UPDATE jobs
+            SET status = 'cancelled'
+            WHERE id = ? AND status = 'scheduled'
+            "#,
+        )
+        .bind(job_id.to_string())
+        .execute(&self.pool)
+        .await?;
+
+        if updated.rows_affected() == 0 {
+            bail!("Job {job_id} cannot be cancelled");
+        }
+
+        Ok(())
+    }
 }
 
 fn into_unix_timestamp(time: SystemTime) -> Result<i64> {
@@ -369,5 +388,42 @@ mod tests {
 
         assert_eq!(claimed.claimed_by.as_deref(), Some(worker_id.as_str()));
         assert!(claimed.claimed_at.is_some());
+    }
+
+    #[tokio::test]
+    async fn scheduled_job_can_be_cancelled() {
+        let (backend, _dir) = make_backend().await;
+        let stored = backend.create_job(make_job()).await.expect("create_job");
+
+        backend.cancel_job(stored.id).await.expect("cancel_job");
+
+        let jobs = backend
+            .retrieve_jobs(mate::proto::job::JobQuery {
+                status: None,
+                min_time: None,
+                max_time: None,
+                limit: None,
+            })
+            .await
+            .expect("retrieve_jobs");
+
+        let cancelled = jobs
+            .into_iter()
+            .find(|job| job.id == stored.id)
+            .expect("cancelled job");
+        assert_eq!(cancelled.status, JobStatus::Cancelled);
+    }
+
+    #[tokio::test]
+    async fn claimed_job_cannot_be_cancelled() {
+        let (backend, _dir) = make_backend().await;
+        let stored = backend.create_job(make_job()).await.expect("create_job");
+        backend
+            .claim_job(stored.id, "worker-A".to_string())
+            .await
+            .expect("claim_job");
+
+        let cancelled = backend.cancel_job(stored.id).await;
+        assert!(cancelled.is_err());
     }
 }

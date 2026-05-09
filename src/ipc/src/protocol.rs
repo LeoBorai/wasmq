@@ -10,6 +10,7 @@ pub enum MessagePayload {
     // Hub -> Storage
     StoreJob(Job),
     QueryJobs(JobQuery),
+    CancelJob(Ulid),
     UpdateJobStatus(Ulid, JobStatus),
 
     // Storage -> Hub/Scheduler/Executor

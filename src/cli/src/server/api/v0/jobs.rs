@@ -1,3 +1,4 @@
+mod cancel;
 mod create;
 mod retrieve;
 
@@ -7,4 +8,5 @@ pub fn routes() -> Router {
     Router::new()
         .route("/", post(create::handler))
         .route("/", get(retrieve::handler))
+        .route("/{id}/cancel", post(cancel::handler))
 }
