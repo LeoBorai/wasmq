@@ -82,6 +82,12 @@ impl Storage {
                     job.id
                 )))),
             },
+            MessagePayload::CancelJob(job_id) => match self.backend.cancel_job(job_id).await {
+                Ok(()) => Some(MessagePayload::JobUpdated(Ok(()))),
+                Err(err) => Some(MessagePayload::JobUpdated(Err(format!(
+                    "Failed to cancel job {job_id}: {err}"
+                )))),
+            },
             MessagePayload::QueryJobs(query) => match self.backend.retrieve_jobs(query).await {
                 Ok(jobs) => Some(MessagePayload::JobsResult(jobs)),
                 Err(_err) => Some(MessagePayload::JobsResult(vec![])),

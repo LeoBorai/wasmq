@@ -85,4 +85,24 @@ impl ApiV0Jobs {
 
         bail!("Request failed with status {}: {}", status, error_text)
     }
+
+    pub async fn cancel(&self, id: Ulid) -> Result<()> {
+        let response = self
+            .http_client
+            .client
+            .post(format!(
+                "{}/api/v0/jobs/{}/cancel",
+                self.http_client.base_url, id
+            ))
+            .send()
+            .await?;
+
+        if response.status().is_success() {
+            return Ok(());
+        }
+
+        let status = response.status();
+        let error_text = response.text().await?;
+        bail!("Request failed with status {}: {}", status, error_text)
+    }
 }
