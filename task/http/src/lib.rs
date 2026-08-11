@@ -1,21 +1,21 @@
 use serde_json::Value;
 use wstd::http::{Body, BodyExt, Client, Method, Request};
 
-use mate_task::{mate_handler, mate_object};
+use wasmq_task::{wasmq_handler, wasmq_object};
 
-#[mate_object]
+#[wasmq_object]
 struct Config {
     api_url: String,
     data: Value,
 }
 
-#[mate_object]
+#[wasmq_object]
 struct Response {
     status: u16,
     body: Value,
 }
 
-#[mate_handler]
+#[wasmq_handler]
 async fn send_http_request(config: Config) -> Result<Response> {
     wstd::runtime::block_on(async move {
         let client = Client::new();

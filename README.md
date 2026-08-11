@@ -1,5 +1,5 @@
 <div align="center">
-  <h1><code>mate</code></h1>
+  <h1><code>wasmq</code></h1>
   <small>Job Queue for Rust applications powered by WASM</small>
 </div>
 
@@ -16,14 +16,14 @@
 A Docker image is available as well. You can pull it from GitHub Container Registry.
 
 ```bash
-docker pull ghcr.io/leoborai/mate:latest
+docker pull ghcr.io/leoborai/wasmq:latest
 ```
 
 ```bash
-docker run -p 6283:6283 ghcr.io/leoborai/mate
+docker run -p 6283:6283 ghcr.io/leoborai/wasmq
 ```
 
-Then use `mate` CLI as regularly. `mate` CLI will perform requests to the `mate`
+Then use `wasmq` CLI as regularly. `wasmq` CLI will perform requests to the `wasmq`
 server running inside the Docker container.
 
 #### Troubleshooting
@@ -33,8 +33,8 @@ server running inside the Docker container.
 If you are getting:
 
 ```bash
-docker pull ghcr.io/leoborai/mate:latest
-Error response from daemon: Head "https://ghcr.io/v2/leoborai/mate/manifests/latest": denied: denied
+docker pull ghcr.io/leoborai/wasmq:latest
+Error response from daemon: Head "https://ghcr.io/v2/leoborai/wasmq/manifests/latest": denied: denied
 ```
 
 This is likely to be related to GHCR Credentials in your environment.
@@ -46,7 +46,7 @@ docker logout ghcr.io
 
 ### GitHub Releases
 
-You can also download precompiled binaries from the [GitHub Releases](https://githeub.com/LeoBorai/mate/releases) page.
+You can also download precompiled binaries from the [GitHub Releases](https://githeub.com/LeoBorai/wasmq/releases) page.
 
 ## Development
 

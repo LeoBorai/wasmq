@@ -8,7 +8,7 @@ use self::cmd::Cmd;
 
 #[derive(Debug, Parser)]
 #[command(
-    name = "mate",
+    name = "wasmq",
     author = "Leo Borai <estebanborai@gmail.com>",
     about = "🦀🧡🧉"
 )]

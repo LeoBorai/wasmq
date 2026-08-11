@@ -7,7 +7,7 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use include_dir::{Dir, File, include_dir};
 
-use mate::proto::task::TaskIdentifier;
+use wasmq::proto::task::TaskIdentifier;
 
 static ASSETS_TASK_RUST: Dir = include_dir!("$CARGO_MANIFEST_DIR/assets/task/rust");
 

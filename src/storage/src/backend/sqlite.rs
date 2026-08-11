@@ -7,7 +7,7 @@ use sqlx::FromRow;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
 use ulid::Ulid;
 
-use mate::proto::job::{Job, JobQuery, JobResult};
+use wasmq::proto::job::{Job, JobQuery, JobResult};
 
 #[derive(Debug, FromRow)]
 pub(crate) struct JobRecord {
@@ -275,8 +275,8 @@ mod tests {
     use serde_json::json;
     use ulid::Ulid;
 
-    use mate::proto::job::{Job, JobStatus};
-    use mate::proto::task::TaskIdentifier;
+    use wasmq::proto::job::{Job, JobStatus};
+    use wasmq::proto::task::TaskIdentifier;
 
     use super::SqliteBackend;
     use crate::backend::Backend;

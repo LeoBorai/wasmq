@@ -1,5 +1,5 @@
 [package]
-name = "mate-repository"
+name = "wasmq-repository"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
@@ -18,4 +18,4 @@ serde = { workspace = true, features = ["derive"] }
 semver = { workspace = true }
 tokio = { workspace = true, features = ["fs", "io-std", "io-util"] }
 
-mate = { workspace = true }
+wasmq = { workspace = true }

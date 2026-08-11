@@ -1,13 +1,14 @@
 [package]
-name = "mate"
+name = "wasmq"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
 description.workspace = true
 documentation.workspace = true
+license.workspace = true
 
 [lib]
-name = "mate"
+name = "wasmq"
 path = "src/lib.rs"
 
 [dependencies]
@@ -17,4 +18,4 @@ reqwest = { workspace = true, features = ["json", "multipart"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 semver = { workspace = true }
-ulid = { workspace = true }
+ulid = { workspace = true, features = ["serde"] }

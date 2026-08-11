@@ -1,11 +1,11 @@
 use axum::http::StatusCode;
 use axum::{Extension, Json};
 use chrono::{DateTime, Utc};
-use mate::proto::task::TaskIdentifier;
+use wasmq::proto::task::TaskIdentifier;
 use serde::Deserialize;
 use serde_json::Value;
 
-use mate::proto::job::Job;
+use wasmq::proto::job::Job;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 
 use crate::server::api::v0::ApiError;

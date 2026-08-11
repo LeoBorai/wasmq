@@ -4,7 +4,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use ulid::Ulid;
 
-use mate::proto::job::{Job, JobQuery, JobResult};
+use wasmq::proto::job::{Job, JobQuery, JobResult};
 
 #[async_trait]
 pub trait Backend: Send + Sync {

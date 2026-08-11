@@ -30,25 +30,25 @@ docs-dev:
 
 # Builds the Server binary used in the Docker Image
 docker-build:
-    cargo zigbuild --target {{target_release}} --release --bin mate
+    cargo zigbuild --target {{target_release}} --release --bin wasmq
 
 # Builds the Docker image
 docker-build-image: docker-build
     mkdir -p ./docker/tmp/
-    cp ./target/{{target_release}}/release/mate ./docker/tmp/mate
-    chmod +x ./docker/tmp/mate
-    docker build -t "mate:$(cargo tag current)" ./docker
+    cp ./target/{{target_release}}/release/wasmq ./docker/tmp/wasmq
+    chmod +x ./docker/tmp/wasmq
+    docker build -t "wasmq:$(cargo tag current)" ./docker
 
 # Publishes the Docker image to the GitHub Container Registry
 docker-publish-image:
-    docker tag mate:$(cargo tag current) ghcr.io/leoborai/mate:$(cargo tag current)
-    docker tag mate:$(cargo tag current) ghcr.io/leoborai/mate:latest
-    docker push ghcr.io/leoborai/mate:$(cargo tag current)
-    docker push ghcr.io/leoborai/mate:latest
+    docker tag wasmq:$(cargo tag current) ghcr.io/leoborai/wasmq:$(cargo tag current)
+    docker tag wasmq:$(cargo tag current) ghcr.io/leoborai/wasmq:latest
+    docker push ghcr.io/leoborai/wasmq:$(cargo tag current)
+    docker push ghcr.io/leoborai/wasmq:latest
 
 # Runs the Docker image locally
 docker-run-image: docker-build-image
-    docker run mate:$(cargo tag current)
+    docker run wasmq:$(cargo tag current)
 
 # Runs clippy and fmt on the entire workspace
 fmt:

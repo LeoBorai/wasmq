@@ -14,7 +14,7 @@ just build-task http
 2. Run the task with the required arguments:
 
 ```bash
-mate task run \
+wasmq task run \
 --source ./http.wasm \
 --args '{
         "api_url": "https://httpbin.org/post",

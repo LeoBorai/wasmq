@@ -5,7 +5,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use bytes::Bytes;
 
-use mate::proto::task::TaskIdentifier;
+use wasmq::proto::task::TaskIdentifier;
 
 use crate::backend::{Backend, LocalBackend};
 

@@ -1,5 +1,5 @@
 [package]
-name = "mate-ipc"
+name = "wasmq-ipc"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
@@ -20,5 +20,5 @@ tracing = { workspace = true }
 tokio = { workspace = true, features = ["fs", "io-util", "macros", "net", "rt", "sync", "time"] }
 ulid = { workspace = true, features = ["serde"] }
 
-mate = { workspace = true }
-mate-repository = { workspace = true }
+wasmq = { workspace = true }
+wasmq-repository = { workspace = true }

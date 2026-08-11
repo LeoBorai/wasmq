@@ -8,7 +8,7 @@ use bytes::Bytes;
 use tokio::fs::{File, create_dir_all, read, read_dir};
 use tokio::io::AsyncWriteExt;
 
-use mate::proto::task::TaskIdentifier;
+use wasmq::proto::task::TaskIdentifier;
 
 use crate::backend::Backend;
 
@@ -19,7 +19,7 @@ pub struct LocalBackend {
 impl LocalBackend {
     pub async fn new() -> Result<Self> {
         let home = home_dir().context("Could not find home directory")?;
-        let dir = home.join(".mate").join("repository");
+        let dir = home.join(".wasmq").join("repository");
 
         if !dir.exists() {
             create_dir_all(&dir)

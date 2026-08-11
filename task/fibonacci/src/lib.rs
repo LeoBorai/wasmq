@@ -1,6 +1,6 @@
-use mate_task::mate_handler;
+use wasmq_task::wasmq_handler;
 
-#[mate_handler]
+#[wasmq_handler]
 async fn sum(nth: u64) -> Result<u64> {
     Ok(fibonacci_recursive(nth))
 }

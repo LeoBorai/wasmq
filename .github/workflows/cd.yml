@@ -83,11 +83,11 @@ jobs:
       - name: Package binary
         run: |
           # Create binary name with version and target
-          BINARY_NAME="mate-${{ env.CRATE_VERSION }}-${{ matrix.name }}"
+          BINARY_NAME="wasmq-${{ env.CRATE_VERSION }}-${{ matrix.name }}"
 
           # Copy and rename binary
           if [ "${{ matrix.os }}" == "ubuntu-latest" ] || [ "${{ matrix.os }}" == "macos-latest" ]; then
-            cp target/${{ matrix.target }}/release/mate $BINARY_NAME
+            cp target/${{ matrix.target }}/release/wasmq $BINARY_NAME
           fi
 
           # Create tar.gz archive

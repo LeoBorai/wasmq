@@ -9,10 +9,10 @@ version = "0.0.0-pre.6a3850b"
 edition = "2024"
 categories = ["web-programming"]
 description = "🦀🧡🧉"
-documentation = "https://docs.rs/mate"
+documentation = "https://docs.rs/wasmq"
 keywords = ["job", "queue", "scheduler", "wasm"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/LeoBorai/mate"
+repository = "https://github.com/LeoBorai/wasmq"
 readme = "./README.md"
 
 [workspace.dependencies]
@@ -47,11 +47,11 @@ wasmtime-wasi-http = "44.0"
 wit-bindgen = "0.57"
 wstd = "0.6"
 
-mate-config = { path = "./src/config" }
-mate-executor = { path = "./src/executor" }
-mate-ipc = { path = "./src/ipc" }
-mate = { path = "./src/mate" }
-mate-repository = { path = "./src/repository" }
-mate-scheduler = { path = "./src/scheduler" }
-mate-storage = { path = "./src/storage" }
-mate-task = { path = "./src/task" }
+wasmq-config = { path = "./src/config" }
+wasmq-executor = { path = "./src/executor" }
+wasmq-ipc = { path = "./src/ipc" }
+wasmq = { path = "./src/wasmq" }
+wasmq-repository = { path = "./src/repository" }
+wasmq-scheduler = { path = "./src/scheduler" }
+wasmq-storage = { path = "./src/storage" }
+wasmq-task = { path = "./src/task" }
