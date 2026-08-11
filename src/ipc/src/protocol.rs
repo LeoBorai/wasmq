@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
-use mate::proto::job::{Job, JobQuery, JobResult, JobStatus};
+use wasmq::proto::job::{Job, JobQuery, JobResult, JobStatus};
 
 pub type ExecutorId = usize;
 

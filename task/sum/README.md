@@ -14,7 +14,7 @@ just build-task sum
 2. Run the task with the required arguments:
 
 ```bash
-mate task run \
+wasmq task run \
 --source ./sum.wasm \
 --args '[1, 2, 3, 4, 5]'
 ```

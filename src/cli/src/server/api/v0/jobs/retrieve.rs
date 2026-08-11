@@ -4,8 +4,8 @@ use axum::{Extension, Json};
 use serde::Deserialize;
 use ulid::Ulid;
 
-use mate::proto::job::{Job, JobQuery, JobStatus};
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
+use wasmq::proto::job::{Job, JobQuery, JobStatus};
 
 use crate::server::api::v0::ApiError;
 use crate::server::state::SharedServices;

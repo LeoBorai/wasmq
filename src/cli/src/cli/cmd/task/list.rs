@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use tabled::Tabled;
 
-use mate::client::Client;
+use wasmq::client::Client;
 
 use crate::cli::utils::display::print_table;
 

@@ -14,7 +14,7 @@ just build-task fibonacci
 2. Run the task with the required arguments:
 
 ```bash
-mate task run \
+wasmq task run \
 --source ./fibonacci.wasm \
 --args '100'
 ```

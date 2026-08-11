@@ -4,7 +4,7 @@ use anyhow::Result;
 use clap::Parser;
 use tokio::fs::read;
 
-use mate::{client::Client, proto::task::TaskIdentifier};
+use wasmq::{client::Client, proto::task::TaskIdentifier};
 
 #[derive(Debug, Parser)]
 pub struct TaskLoadOpt {

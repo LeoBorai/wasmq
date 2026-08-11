@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use ulid::Ulid;
 
-use mate::client::Client;
+use wasmq::client::Client;
 
 #[derive(Debug, Parser)]
 pub struct JobViewOpt {

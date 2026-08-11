@@ -20,7 +20,7 @@ impl StorageSpawnOpt {
     pub async fn exec(&self) -> Result<()> {
         let config = Config::from_file(&self.config)?;
         let mut home = home_dir().context("Failed to get home directory")?;
-        home.push(".mate");
+        home.push(".wasmq");
         let transport = make_transport(config.clone(), ProcessType::Storage).await?;
         let mut storage = StorageProcess::new(transport, home).await?;
 

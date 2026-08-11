@@ -3,9 +3,9 @@ use chrono::{DateTime, Duration, Utc};
 use clap::Parser;
 use serde_json::Value;
 
-use mate::client::Client;
-use mate::client::api::v0::jobs::CreateJobRequest;
-use mate::proto::task::TaskIdentifier;
+use wasmq::client::Client;
+use wasmq::client::api::v0::jobs::CreateJobRequest;
+use wasmq::proto::task::TaskIdentifier;
 
 use crate::cli::utils::io::parse_json;
 

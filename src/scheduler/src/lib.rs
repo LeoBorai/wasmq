@@ -7,10 +7,10 @@ use tokio::sync::Mutex;
 use tokio::time::{interval, sleep};
 use tracing::{debug, error, warn};
 
-use mate::proto::job::{Job, JobQuery, JobStatus};
 use mate_ipc::channel::IpcServer;
 use mate_ipc::protocol::{Message, MessagePayload, ProcessType};
 use mate_ipc::transport::Transport;
+use wasmq::proto::job::{Job, JobQuery, JobStatus};
 
 const IPC_SENDER_SCHEDULER: ProcessType = ProcessType::Scheduler;
 const CHECK_INTERVAL: Duration = Duration::from_secs(10);

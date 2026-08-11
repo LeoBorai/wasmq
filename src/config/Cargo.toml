@@ -1,5 +1,5 @@
 [package]
-name = "mate-config"
+name = "wasmq-config"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true

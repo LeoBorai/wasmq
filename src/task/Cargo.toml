@@ -1,5 +1,5 @@
 [package]
-name = "mate-task"
+name = "wasmq-task"
 description = "Macros to define tasks for Mate"
 edition.workspace = true
 version.workspace = true
@@ -11,7 +11,7 @@ repository.workspace = true
 readme.workspace = true
 
 [lib]
-name = "mate_task"
+name = "wasmq_task"
 path = "src/lib.rs"
 proc-macro = true
 

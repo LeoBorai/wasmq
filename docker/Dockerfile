@@ -1,5 +1,5 @@
 FROM alpine:3
 
-COPY ./tmp/mate /opt/mate
+COPY ./tmp/wasmq /opt/wasmq
 
-ENTRYPOINT ["/opt/mate", "start"]
+ENTRYPOINT ["/opt/wasmq", "start"]

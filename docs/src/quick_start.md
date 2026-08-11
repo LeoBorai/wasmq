@@ -1,7 +1,7 @@
 # Quick Start
 
-Welcome to the "mate" quick start guide.
-"mate" is a Job Queue inspired on solutions like Sidekiq
+Welcome to the "wasmq" quick start guide.
+"wasmq" is a Job Queue inspired on solutions like Sidekiq
 from Ruby and Celery from Python.
 
 Job Queues are useful for scheduling a piece of logic to be
@@ -18,14 +18,14 @@ in the background instead of blocking your server's thread.
 
 ## Requirements
 
-- `mate`: The mate CLI and server
+- `wasmq`: The wasmq CLI and server
 - `just`: Command runner used for convenience
 
 ## Building an example task
 
-Tasks are unit of logic used to define workflows in mate.
+Tasks are unit of logic used to define workflows in wasmq.
 
-As of today mate supports Task written in Rust and compiled to WebAssembly (Wasm) format,
+As of today wasmq supports Task written in Rust and compiled to WebAssembly (Wasm) format,
 in the future other languages and formats may be supported.
 
 The following task performs an HTTP request to a given URL with given data.
@@ -37,46 +37,46 @@ just build-task http
 This will compile the example HTTP task located at `task/http` into WebAssembly format and copy
 the output file to the current directory.
 
-## Starting the mate server
+## Starting the wasmq server
 
-Run a mate instance, you can either run it in Docker or locally.
+Run a wasmq instance, you can either run it in Docker or locally.
 
 ### Docker
 
 ```bash
-docker pull ghcr.io/leoborai/mate:latest
-docker run -p 6283:6283 ghcr.io/leoborai/mate
+docker pull ghcr.io/leoborai/wasmq:latest
+docker run -p 6283:6283 ghcr.io/leoborai/wasmq
 ```
 
 > You can find more details on the GitHub's Docker
-> container [summary page](https://github.com/LeoBorai/mate/pkgs/container/mate).
+> container [summary page](https://github.com/LeoBorai/wasmq/pkgs/container/wasmq).
 
 ### Locally
 
-Binaries for `mate` are published as part of the GitHub
+Binaries for `wasmq` are published as part of the GitHub
 Action workflow for Release.
 
-Visit the [releases page](https://github.com/LeoBorai/mate/releases) for more details.
+Visit the [releases page](https://github.com/LeoBorai/wasmq/releases) for more details.
 
 ```bash
-mate run
+wasmq run
 ```
 
-## Register the Task in mate's Task Repository
+## Register the Task in wasmq's Task Repository
 
-In order to have the mate Task reachable it must be registered in mate's Task Repository.
+In order to have the wasmq Task reachable it must be registered in wasmq's Task Repository.
 
 The `task` directory from the GitHub's repository contains
 example tasks. A HTTP task in included which is used for
 performing HTTP requests.
 
 ```bash
-mate task load --id mate/http@0.1.0 ./http.wasm
+wasmq task load --id wasmq/http@0.1.0 ./http.wasm
 ```
 
 > Tasks are named with a namespace, task name and version.
 > On this example we are storing a task `http` under
-> the `mate` namespace.
+> the `wasmq` namespace.
 
 ## Create a Job
 
@@ -87,7 +87,7 @@ The following command creates a Job that will perform an HTTP POST
 request to `https://httpbin.org/post`
 
 ```bash
-mate job new \
+wasmq job new \
     --name greet \
     --args "{\"api_url\": \"https://httpbin.org/post\",\"data\": {\"sample_key\": \"sample_value\"}}" \
     --task leo/http@0.1.0 \
@@ -96,10 +96,10 @@ mate job new \
 
 ## List Jobs
 
-Run the following command to list all Jobs registered in mate:
+Run the following command to list all Jobs registered in wasmq:
 
 ```bash
-mate job ls -a
+wasmq job ls -a
 ```
 
 This will list all jobs and its status.
@@ -110,9 +110,9 @@ You can inspect on a Job's result, status and more details by using
 the `view` subcommand along with the Job ID obtained from the previous command:
 
 ```bash
-mate job view <JOB_ID>
+wasmq job view <JOB_ID>
 ```
 
 ## Congratulations!
 
-You have created your first mate Job!
+You have created your first wasmq Job!

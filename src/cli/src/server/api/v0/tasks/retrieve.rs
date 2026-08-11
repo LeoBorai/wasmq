@@ -1,7 +1,7 @@
 use axum::http::StatusCode;
 use axum::{Extension, Json};
 
-use mate::proto::task::TaskIdentifier;
+use wasmq::proto::task::TaskIdentifier;
 
 use crate::server::api::v0::ApiError;
 use crate::server::state::SharedServices;

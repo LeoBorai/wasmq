@@ -1,5 +1,5 @@
 [book]
-title = "mate"
+title = "wasmq"
 authors = ["Leo Borai"]
 description = "A Job Scheduler for Rust"
 language = "en"

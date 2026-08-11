@@ -1,4 +1,4 @@
-use mate_task::mate_handler;
+use wasmq_task::wasmq_handler;
 
 /// This is your task's main function.
 /// Feel free to change its name and parameters as needed.

@@ -919,9 +919,9 @@ name = "fibonacci"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "mate-task",
  "serde",
  "serde_json",
+ "wasmq-task",
  "wit-bindgen 0.57.1",
 ]
 
@@ -1273,9 +1273,9 @@ name = "http"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "mate-task",
  "serde",
  "serde_json",
+ "wasmq-task",
  "wit-bindgen 0.57.1",
  "wstd",
 ]
@@ -1811,142 +1811,6 @@ name = "matchit"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
-
-[[package]]
-name = "mate"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "anyhow",
- "chrono",
- "reqwest",
- "semver",
- "serde",
- "serde_json",
- "ulid",
-]
-
-[[package]]
-name = "mate-cli"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "anyhow",
- "axum",
- "bytes",
- "chrono",
- "clap",
- "humantime",
- "include_dir",
- "mate",
- "mate-config",
- "mate-executor",
- "mate-ipc",
- "mate-repository",
- "mate-scheduler",
- "mate-storage",
- "serde",
- "serde_json",
- "tabled",
- "tempfile",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "ulid",
-]
-
-[[package]]
-name = "mate-config"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "anyhow",
- "serde",
- "toml 1.0.0+spec-1.1.0",
-]
-
-[[package]]
-name = "mate-executor"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "anyhow",
- "bytes",
- "clap",
- "rustls",
- "serde",
- "serde_json",
- "tokio",
- "wasmtime",
- "wasmtime-wasi",
- "wasmtime-wasi-http",
-]
-
-[[package]]
-name = "mate-ipc"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "anyhow",
- "async-trait",
- "mate",
- "mate-repository",
- "serde",
- "serde_json",
- "tempfile",
- "tokio",
- "tracing",
- "ulid",
-]
-
-[[package]]
-name = "mate-repository"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "anyhow",
- "async-trait",
- "bytes",
- "mate",
- "semver",
- "serde",
- "tokio",
-]
-
-[[package]]
-name = "mate-scheduler"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "anyhow",
- "mate",
- "mate-ipc",
- "tokio",
- "tracing",
- "ulid",
-]
-
-[[package]]
-name = "mate-storage"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "mate",
- "mate-ipc",
- "serde_json",
- "sqlx",
- "tempfile",
- "tokio",
- "tracing",
- "ulid",
-]
-
-[[package]]
-name = "mate-task"
-version = "0.0.0-pre.6a3850b"
-dependencies = [
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "syn",
- "wit-bindgen 0.57.1",
-]
 
 [[package]]
 name = "maybe-owned"
@@ -3184,9 +3048,9 @@ name = "sum"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "mate-task",
  "serde",
  "serde_json",
+ "wasmq-task",
  "wit-bindgen 0.57.1",
 ]
 
@@ -4002,6 +3866,142 @@ dependencies = [
  "anyhow",
  "termcolor",
  "wasmparser 0.246.2",
+]
+
+[[package]]
+name = "wasmq"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "reqwest",
+ "semver",
+ "serde",
+ "serde_json",
+ "ulid",
+]
+
+[[package]]
+name = "wasmq-cli"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "anyhow",
+ "axum",
+ "bytes",
+ "chrono",
+ "clap",
+ "humantime",
+ "include_dir",
+ "serde",
+ "serde_json",
+ "tabled",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "ulid",
+ "wasmq",
+ "wasmq-config",
+ "wasmq-executor",
+ "wasmq-ipc",
+ "wasmq-repository",
+ "wasmq-scheduler",
+ "wasmq-storage",
+]
+
+[[package]]
+name = "wasmq-config"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "anyhow",
+ "serde",
+ "toml 1.0.0+spec-1.1.0",
+]
+
+[[package]]
+name = "wasmq-executor"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "clap",
+ "rustls",
+ "serde",
+ "serde_json",
+ "tokio",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wasmtime-wasi-http",
+]
+
+[[package]]
+name = "wasmq-ipc"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "ulid",
+ "wasmq",
+ "wasmq-repository",
+]
+
+[[package]]
+name = "wasmq-repository"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bytes",
+ "semver",
+ "serde",
+ "tokio",
+ "wasmq",
+]
+
+[[package]]
+name = "wasmq-scheduler"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "anyhow",
+ "tokio",
+ "tracing",
+ "ulid",
+ "wasmq",
+ "wasmq-ipc",
+]
+
+[[package]]
+name = "wasmq-storage"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "serde_json",
+ "sqlx",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "ulid",
+ "wasmq",
+ "wasmq-ipc",
+]
+
+[[package]]
+name = "wasmq-task"
+version = "0.0.0-pre.6a3850b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "wit-bindgen 0.57.1",
 ]
 
 [[package]]

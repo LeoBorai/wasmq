@@ -1,5 +1,5 @@
 [package]
-name = "mate-storage"
+name = "wasmq-storage"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
@@ -20,8 +20,8 @@ tokio = { workspace = true }
 tracing = { workspace = true }
 ulid = { workspace = true }
 
-mate = { workspace = true }
-mate-ipc = { workspace = true }
+wasmq = { workspace = true }
+wasmq-ipc = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }

@@ -5,8 +5,8 @@ use clap::Parser;
 use tabled::Tabled;
 use ulid::Ulid;
 
-use mate::client::Client;
-use mate::proto::job::JobStatus;
+use wasmq::client::Client;
+use wasmq::proto::job::JobStatus;
 
 use crate::cli::utils::display::print_table;
 

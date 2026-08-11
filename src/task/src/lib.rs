@@ -3,7 +3,7 @@ use quote::quote;
 use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 
 #[proc_macro_attribute]
-pub fn mate_object(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn wasmq_object(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as syn::DeriveInput);
     let name = &input.ident;
 
@@ -23,7 +23,7 @@ pub fn mate_object(_attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn mate_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn wasmq_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(item as ItemFn);
     let fn_name = &input_fn.sig.ident;
     let fn_vis = &input_fn.vis;
@@ -89,9 +89,9 @@ pub fn mate_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
             wit_bindgen::generate!({
                 async: true,
                 inline: r"
-                    package mate:runtime@0.1.0;
+                    package wasmq:runtime@0.1.0;
 
-                    world mate {
+                    world wasmq {
                         export handler: async func(data: string) -> result<string, string>;
                     }",
             });
